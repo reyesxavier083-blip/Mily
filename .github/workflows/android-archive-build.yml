@@ -199,11 +199,15 @@ KOTLIN
             echo "::error::Gradle completed but no non-empty debug APK was produced."
             exit 1
           fi
-          if ! command -v apkanalyzer >/dev/null 2>&1; then
+          apkanalyzer_bin="$(command -v apkanalyzer || true)"
+          if [[ -z "$apkanalyzer_bin" && -n "${ANDROID_HOME:-}" ]]; then
+            apkanalyzer_bin="$(find "$ANDROID_HOME/cmdline-tools" -type f -name apkanalyzer -print -quit 2>/dev/null || true)"
+          fi
+          if [[ -z "$apkanalyzer_bin" || ! -x "$apkanalyzer_bin" ]]; then
             echo "::error::Android SDK apkanalyzer is unavailable; cannot validate APK metadata."
             exit 1
           fi
-          app_id="$(apkanalyzer manifest application-id "$apk")"
+          app_id="$("$apkanalyzer_bin" manifest application-id "$apk")"
           if [[ -z "$app_id" ]]; then
             echo "::error::APK manifest does not declare an application ID."
             exit 1
