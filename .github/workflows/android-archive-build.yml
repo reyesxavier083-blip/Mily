@@ -73,6 +73,32 @@ jobs:
           realtime_file="$PROJECT_ROOT/app/src/main/java/com/example/data/ai/MilyRealtimeClient.kt"
           test -f "$realtime_file"
 
+          # Consolidate the archived product branding and symbols under MILY.
+          # Preserve legacy on-device preference/database keys so existing installs keep their data.
+          find "$PROJECT_ROOT" -type f \\( -name '*.kt' -o -name '*.xml' -o -name '*.tsx' -o -name '*.ts' -o -name '*.json' \\) \\
+            -not -path '*/build/*' -print0 | xargs -0 -r sed -i \\
+              -e 's/NexusEnginesHubSheet/MilyEnginesHubSheet/g' \\
+              -e 's/NexusEngineTemplate/MilyEngineTemplate/g' \\
+              -e 's/NexusEngineType/MilyEngineType/g' \\
+              -e 's/defaultNexusEngineTemplates/defaultMilyEngineTemplates/g' \\
+              -e 's/onOpenNexusEngines/onOpenMilyEngines/g' \\
+              -e 's/showNexusEnginesSheet/showMilyEnginesSheet/g' \\
+              -e 's/nexus_engine/mily_engine/g' \\
+              -e 's/nexus_hub/mily_hub/g' \\
+              -e 's/NEXUS/MILY/g' \\
+              -e 's/Nexus/Mily/g' \\
+              -e 's/nexus/mily/g'
+          # These names are persisted on user devices; changing them would discard old data.
+          find "$PROJECT_ROOT" -type f \\( -name '*.kt' -o -name '*.xml' -o -name '*.tsx' -o -name '*.ts' -o -name '*.json' \\) \\
+            -not -path '*/build/*' -print0 | xargs -0 -r sed -i \\
+              -e 's/mily_database/nexus_database/g' \\
+              -e 's/mily_crash_prefs/nexus_crash_prefs/g'
+          old_hub="$PROJECT_ROOT/app/src/main/java/com/example/ui/components/NexusEnginesHubSheet.kt"
+          new_hub="$PROJECT_ROOT/app/src/main/java/com/example/ui/components/MilyEnginesHubSheet.kt"
+          if [[ -f "$old_hub" && ! -f "$new_hub" ]]; then
+            mv "$old_hub" "$new_hub"
+          fi
+
           # The old org.webrtc coordinate is absent from the configured public repositories.
           sed -i 's#implementation("org.webrtc:google-webrtc:1.0.32006")#implementation("com.infobip:google-webrtc:1.0.48246t")#' "$gradle_file"
           # Use the SDK method accessor supported by the resolved WebRTC library.
@@ -188,6 +214,14 @@ KOTLIN
         run: |
           set -euo pipefail
           "$PROJECT_ROOT/gradlew" --no-daemon --no-configuration-cache :app:assembleDebug
+
+      - name: Run Android unit tests
+        shell: bash
+        env:
+          PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
+        run: |
+          set -euo pipefail
+          "$PROJECT_ROOT/gradlew" --no-daemon --no-configuration-cache :app:testDebugUnitTest
 
       - name: Verify generated APK
         shell: bash
