@@ -62,7 +62,7 @@ jobs:
           PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
         run: |
           set -euo pipefail
-          "$PROJECT_ROOT/gradlew" -p "$PROJECT_ROOT" --no-daemon :app:assembleDebug
+          "$PROJECT_ROOT/gradlew" --no-daemon :app:assembleDebug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
