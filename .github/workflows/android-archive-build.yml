@@ -75,13 +75,6 @@ jobs:
 
           # Consolidate archived product branding and identifiers under MILY.
           # Include Gradle settings and documentation, not just application source files.
-          text_file_args=(
-            --include='*.kt' --include='*.xml' --include='*.tsx' --include='*.ts'
-            --include='*.json' --include='*.kts' --include='*.gradle' --include='*.properties'
-            --include='*.toml' --include='*.md' --include='*.sh' --include='*.bat'
-            --include='*.html' --include='*.css' --include='*.yml' --include='*.yaml'
-            --include='*.txt' --include='*.pro'
-          )
           find "$PROJECT_ROOT" -type f \\( -path '*/build/*' -o -path '*/.gradle/*' \\) -prune -o \\
             -type f -print0 | while IFS= read -r -d '' file; do
               case "$file" in
@@ -146,6 +139,7 @@ jobs:
           import androidx.compose.ui.test.assertExists
           import androidx.compose.ui.test.junit4.createComposeRule
           import androidx.compose.ui.test.onRoot
+          import androidx.compose.ui.test.onNodeWithText
           import com.example.data.model.Persona
           import com.example.ui.screens.WelcomeScreen
           import com.example.ui.theme.MyApplicationTheme
@@ -174,6 +168,7 @@ jobs:
                 }
               }
               composeTestRule.onRoot().assertExists()
+              composeTestRule.onNodeWithText("MILY", substring = true).assertExists()
             }
           }
           KOTLIN
