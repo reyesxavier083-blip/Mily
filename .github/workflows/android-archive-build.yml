@@ -73,30 +73,67 @@ jobs:
           realtime_file="$PROJECT_ROOT/app/src/main/java/com/example/data/ai/MilyRealtimeClient.kt"
           test -f "$realtime_file"
 
-          # Consolidate the archived product branding and symbols under MILY.
-          # Preserve legacy on-device preference/database keys so existing installs keep their data.
-          find "$PROJECT_ROOT" -type f \( -name '*.kt' -o -name '*.xml' -o -name '*.tsx' -o -name '*.ts' -o -name '*.json' \) \
-            -not -path '*/build/*' -print0 | xargs -0 -r sed -i \
-              -e 's/NexusEnginesHubSheet/MilyEnginesHubSheet/g' \
-              -e 's/NexusEngineTemplate/MilyEngineTemplate/g' \
-              -e 's/NexusEngineType/MilyEngineType/g' \
-              -e 's/defaultNexusEngineTemplates/defaultMilyEngineTemplates/g' \
-              -e 's/onOpenNexusEngines/onOpenMilyEngines/g' \
-              -e 's/showNexusEnginesSheet/showMilyEnginesSheet/g' \
-              -e 's/nexus_engine/mily_engine/g' \
-              -e 's/nexus_hub/mily_hub/g' \
-              -e 's/NEXUS/MILY/g' \
-              -e 's/Nexus/Mily/g' \
-              -e 's/nexus/mily/g'
-          # These names are persisted on user devices; changing them would discard old data.
-          find "$PROJECT_ROOT" -type f \( -name '*.kt' -o -name '*.xml' -o -name '*.tsx' -o -name '*.ts' -o -name '*.json' \) \
-            -not -path '*/build/*' -print0 | xargs -0 -r sed -i \
-              -e 's/mily_database/nexus_database/g' \
-              -e 's/mily_crash_prefs/nexus_crash_prefs/g'
-          old_hub="$PROJECT_ROOT/app/src/main/java/com/example/ui/components/NexusEnginesHubSheet.kt"
-          new_hub="$PROJECT_ROOT/app/src/main/java/com/example/ui/components/MilyEnginesHubSheet.kt"
-          if [[ -f "$old_hub" && ! -f "$new_hub" ]]; then
-            mv "$old_hub" "$new_hub"
+          # Consolidate archived product branding and identifiers under MILY.
+          # Include Gradle settings and documentation, not just application source files.
+          text_file_args=(
+            --include='*.kt' --include='*.xml' --include='*.tsx' --include='*.ts'
+            --include='*.json' --include='*.kts' --include='*.gradle' --include='*.properties'
+            --include='*.toml' --include='*.md' --include='*.sh' --include='*.bat'
+            --include='*.html' --include='*.css' --include='*.yml' --include='*.yaml'
+            --include='*.txt' --include='*.pro'
+          )
+          find "$PROJECT_ROOT" -type f \\( -path '*/build/*' -o -path '*/.gradle/*' \\) -prune -o \\
+            -type f -print0 | while IFS= read -r -d '' file; do
+              case "$file" in
+                *.kt|*.xml|*.tsx|*.ts|*.json|*.kts|*.gradle|*.properties|*.toml|*.md|*.sh|*.bat|*.html|*.css|*.yml|*.yaml|*.txt|*.pro)
+                  sed -i \\
+                    -e 's/NEXUS/MILY/g' \\
+                    -e 's/Nexus/Mily/g' \\
+                    -e 's/nexus/mily/g' "$file"
+                  ;;
+              esac
+            done
+          # Keep the existing Room database and crash-preference names for upgrade compatibility.
+          find "$PROJECT_ROOT" -type f \\( -path '*/build/*' -o -path '*/.gradle/*' \\) -prune -o \\
+            -type f -print0 | while IFS= read -r -d '' file; do
+              case "$file" in
+                *.kt|*.xml|*.tsx|*.ts|*.json|*.kts|*.gradle|*.properties|*.toml|*.md|*.sh|*.bat|*.html|*.css|*.yml|*.yaml|*.txt|*.pro)
+                  sed -i \\
+                    -e 's/mily_database/nexus_database/g' \\
+                    -e 's/mily_crash_prefs/nexus_crash_prefs/g' "$file"
+                  ;;
+              esac
+            done
+          # Rename source files/directories that still carry the legacy product name.
+          while IFS= read -r -d '' old_path; do
+            new_path="$old_path"
+            new_path="${new_path//NEXUS/MILY}"
+            new_path="${new_path//Nexus/Mily}"
+            new_path="${new_path//nexus/mily}"
+            if [[ "$new_path" != "$old_path" ]]; then
+              if [[ -e "$new_path" ]]; then
+                echo "::error::Cannot rename $old_path; destination already exists: $new_path"
+                exit 1
+              fi
+              mkdir -p "$(dirname "$new_path")"
+              mv "$old_path" "$new_path"
+            fi
+          done < <(find "$PROJECT_ROOT" -depth -iname '*nexus*' -print0)
+          # Fail if any legacy identifier remains outside the deliberately preserved storage keys.
+          remaining="$(grep -RInE 'NEXUS|Nexus|nexus' "$PROJECT_ROOT" \\
+            --include='*.kt' --include='*.xml' --include='*.tsx' --include='*.ts' \\
+            --include='*.json' --include='*.kts' --include='*.gradle' --include='*.properties' \\
+            --include='*.toml' --include='*.md' --include='*.sh' --include='*.bat' \\
+            --include='*.html' --include='*.css' --include='*.yml' --include='*.yaml' \\
+            --include='*.txt' --include='*.pro' | grep -vE 'nexus_database|nexus_crash_prefs' || true)"
+          if [[ -n "$remaining" ]]; then
+            echo "::error::Legacy NEXUS references remain after migration:"
+            echo "$remaining"
+            exit 1
+          fi
+          # Use MILY branding in the root project documentation as well.
+          if [[ -f "$PROJECT_ROOT/README.md" ]]; then
+            sed -i 's/^# Run and deploy your AI Studio app$/# MILY — Multimodal Intelligent Logic and You/' "$PROJECT_ROOT/README.md"
           fi
 
           # The archived Robolectric screenshot baseline is malformed binary data.
