@@ -11,7 +11,7 @@ on:
       - ".github/workflows/android-archive-build.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   assemble-debug:
@@ -20,8 +20,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          persist-credentials: true
+          fetch-depth: 1
+          persist-credentials: false
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -121,25 +121,40 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Sync and push repair commit back to branch
-        if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+  persist-patched-source:
+    name: Persist validated Android source fixes
+    needs: assemble-debug
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Download the source archive produced by the successful build
+        uses: actions/download-artifact@v4
+        with:
+          name: mily-android-patched-source
+          path: patched-source
+
+      - name: Commit validated archive if it changed
         shell: bash
         run: |
           set -euo pipefail
+          test -f patched-source/mily-patched.zip
+          unzip -t patched-source/mily-patched.zip
+          cp patched-source/mily-patched.zip mily.zip
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Persist the tested source fixes to the repository archive.
-          # The old workflow only uploaded an artifact; it never copied the
-          # patched archive back into the checkout, so git add had nothing to commit.
-          cp "$RUNNER_TEMP/mily-patched.zip" "$GITHUB_WORKSPACE/mily.zip"
-          unzip -t "$GITHUB_WORKSPACE/mily.zip"
           git add mily.zip
           if git diff --cached --quiet; then
             echo "No source archive changes to commit."
             exit 0
           fi
-
           git commit -m "Fix Android build blockers in MILY archive"
-          # Do not force-push: if the branch changed during the build, fail safely.
+          # Never force-push; reject the update if the branch changed meanwhile.
           git push origin "HEAD:${GITHUB_REF_NAME}"
