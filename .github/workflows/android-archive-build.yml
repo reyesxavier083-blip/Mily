@@ -50,6 +50,22 @@ jobs:
           chmod +x "$wrapper"
           echo "project_root=$project_root" >> "$GITHUB_OUTPUT"
 
+      - name: Patch retired WebRTC dependency in the temporary build copy
+        shell: bash
+        env:
+          PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
+        run: |
+          set -euo pipefail
+          gradle_file="$PROJECT_ROOT/app/build.gradle.kts"
+          if grep -Fq 'implementation("org.webrtc:google-webrtc:1.0.32006")' "$gradle_file"; then
+            sed -i 's#implementation("org.webrtc:google-webrtc:1.0.32006")#implementation("com.infobip:google-webrtc:1.0.48246t")#' "$gradle_file"
+            echo "::notice::The archived WebRTC coordinate is unavailable from configured repositories; using the published Infobip WebRTC artifact in this temporary CI copy."
+          fi
+          if grep -Fq 'implementation("org.webrtc:google-webrtc:1.0.32006")' "$gradle_file"; then
+            echo "::error::The obsolete WebRTC dependency was not replaced."
+            exit 1
+          fi
+
       - name: Install Android build platform
         shell: bash
         run: |
@@ -62,7 +78,7 @@ jobs:
           PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
         run: |
           set -euo pipefail
-          "$PROJECT_ROOT/gradlew" --no-daemon :app:assembleDebug
+          "$PROJECT_ROOT/gradlew" --no-daemon --no-configuration-cache :app:assembleDebug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
