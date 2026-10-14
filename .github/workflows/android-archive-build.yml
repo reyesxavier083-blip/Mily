@@ -61,9 +61,15 @@ jobs:
           PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
         run: |
           set -euo pipefail
-          gradle_file="$PROJECT_ROOT/app/build.gradle.kts"
+          if [[ -f "$PROJECT_ROOT/app/build.gradle.kts" ]]; then
+            gradle_file="$PROJECT_ROOT/app/build.gradle.kts"
+          elif [[ -f "$PROJECT_ROOT/app/build.gradle" ]]; then
+            gradle_file="$PROJECT_ROOT/app/build.gradle"
+          else
+            echo "::error::No app/build.gradle(.kts) found."
+            exit 1
+          fi
           realtime_file="$PROJECT_ROOT/app/src/main/java/com/example/data/ai/MilyRealtimeClient.kt"
-          test -f "$gradle_file"
           test -f "$realtime_file"
 
           # The old org.webrtc coordinate is absent from the configured public repositories.
