@@ -1,0 +1,23 @@
+name: mily-web
+region: nyc
+services:
+  - name: mily-api
+    source_dir: /
+    dockerfile_path: backend/mily-openai/Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: OPENAI_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: MILY_API_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+      - key: MILY_ALLOWED_ORIGINS
+        scope: RUN_TIME
+        value: https://reyesxavier083-blip.github.io
+static_sites:
+  - name: mily-frontend
+    source_dir: web
+    index_document: index.html
