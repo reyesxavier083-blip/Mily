@@ -2,11 +2,12 @@
 
 Asistente de IA modular en desarrollo. MILY se mantiene como proyecto independiente de NEXUS.
 
-## Desarrollo
+## Módulos actuales
 
 - `mily_core/security.py`: valida rutas para limitar el acceso al espacio de trabajo autorizado.
 - `mily_core/tasks.py`: máquina de estados para el ciclo de vida de tareas; no ejecuta herramientas ni concede permisos.
-- `tests/`: pruebas unitarias de seguridad y estados de tareas.
+- `mily_core/memory.py`: memoria temporal en proceso, con categorías, procedencia, búsqueda y límite de capacidad. No guarda datos en disco.
+- `tests/`: pruebas unitarias para seguridad, tareas y memoria.
 - `docs/MEJORA_ARQUITECTURA_MILY.md`: hoja de ruta técnica.
 
 ## Ejecutar las pruebas
@@ -21,4 +22,4 @@ Las pruebas también se ejecutan automáticamente mediante GitHub Actions en cad
 
 ## Nota de seguridad
 
-Las comprobaciones de rutas deben aplicarse en las herramientas que leen o escriben archivos. La máquina de estados de tareas no sustituye la autorización de acciones externas o destructivas. No guardes claves API ni contraseñas en el repositorio.
+La memoria actual es volátil y no debe usarse para secretos ni datos personales sensibles. Las comprobaciones de rutas deben aplicarse en las herramientas que leen o escriben archivos. La máquina de estados de tareas no sustituye la autorización de acciones externas o destructivas. No guardes claves API ni contraseñas en el repositorio.
