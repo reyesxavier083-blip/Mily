@@ -21,12 +21,9 @@ Asistente de IA modular en desarrollo. MILY se mantiene como proyecto independie
 
 La interfaz inicial está en `web/index.html`. Puede abrirse para revisar el diseño, pero para conversar con el modelo necesita un backend accesible. Abre **Conexión y ajustes** e indica la URL base del servidor. La web no contiene ni solicita una clave API del proveedor.
 
-El backend esperado expone:
+El backend Node.js está ahora en `backend/mily-openai/` e incluye Dockerfile, configuración de ejemplo, autenticación Bearer configurable, allowlist CORS, límite básico de solicitudes, Responses API, memoria temporal y File Search opcional. Consulta `backend/mily-openai/README.md` y `docs/WEB_BACKEND_DEPLOY.md`.
 
-- `GET /health`
-- `POST /v1/mily/responses`
-
-El contrato sigue el backend Node.js de MILY incluido en el archivo V18 integrado por separado; dicho backend no está expandido en este repositorio. Antes de publicar el servicio, añade autenticación, límites de frecuencia/coste y HTTPS. Revisa `docs/WEB_ANDROID_ARQUITECTURA.md`.
+Para producción, configura `OPENAI_API_KEY`, `MILY_API_TOKEN` y `MILY_ALLOWED_ORIGINS` como variables/secretos del hosting, habilita HTTPS y revisa el límite de costes. El backend todavía necesita ser desplegado en un proveedor externo; GitHub Pages solo publica la web estática. La app Android del archivo integrado no está expandida en este repositorio y debe enviar Authorization si se habilita el token.
 
 ## Ejecutar las pruebas
 
@@ -41,6 +38,7 @@ Si tienes Node.js instalado, valida también el JavaScript de la interfaz:
 
 ```bash
 node --check web/app.js
+node --check backend/mily-openai/server.mjs
 ```
 
 GitHub Actions ejecuta automáticamente las comprobaciones de sintaxis y las pruebas en los cambios de `main` y en pull requests.
