@@ -11,6 +11,7 @@
 - Bus de eventos con aislamiento de fallos de suscriptores.
 - Logs JSON estructurados con límites y redacción de patrones comunes de credenciales.
 - Coordinador de tareas que conecta estados, eventos y observabilidad sin ejecutar herramientas ni conceder permisos.
+- Gestor de permisos por lista de confianza: bloquea herramientas no registradas, rechaza discrepancias de riesgo y requiere confirmación por llamada para operaciones con efectos.
 - CI de Python: compilación de fuentes y suite de pruebas.
 
 ## Validación del archivo Android V26
