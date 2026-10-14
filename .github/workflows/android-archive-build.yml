@@ -1,0 +1,271 @@
+name: MILY Android archive build
+
+on:
+  push:
+    branches: ["main", "mily/android-build-check"]
+    paths-ignore:
+      - "mily.zip"
+  pull_request:
+    paths:
+      - "mily.zip"
+      - ".github/workflows/android-archive-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  assemble-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Validate and extract the repository archive
+        id: archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f mily.zip
+          unzip -t mily.zip
+          destination="$RUNNER_TEMP/mily-android"
+          mkdir -p "$destination"
+          unzip -q mily.zip -d "$destination"
+          wrapper="$(find "$destination" -type f -name gradlew -print -quit)"
+          if [[ -z "$wrapper" ]]; then
+            echo "::error::mily.zip does not contain a Gradle wrapper; cannot build an Android APK from this archive."
+            exit 1
+          fi
+          project_root="$(dirname "$wrapper")"
+          if [[ ! -f "$project_root/app/build.gradle.kts" && ! -f "$project_root/app/build.gradle" ]]; then
+            echo "::error::Found gradlew but no app/build.gradle(.kts) in the same project root."
+            exit 1
+          fi
+          chmod +x "$wrapper"
+          echo "project_root=$project_root" >> "$GITHUB_OUTPUT"
+
+      - name: Repair archived Android build blockers
+        shell: bash
+        env:
+          PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
+        run: |
+          set -euo pipefail
+          if [[ -f "$PROJECT_ROOT/app/build.gradle.kts" ]]; then
+            gradle_file="$PROJECT_ROOT/app/build.gradle.kts"
+          elif [[ -f "$PROJECT_ROOT/app/build.gradle" ]]; then
+            gradle_file="$PROJECT_ROOT/app/build.gradle"
+          else
+            echo "::error::No app/build.gradle(.kts) found."
+            exit 1
+          fi
+          realtime_file="$PROJECT_ROOT/app/src/main/java/com/example/data/ai/MilyRealtimeClient.kt"
+          test -f "$realtime_file"
+
+          # The old org.webrtc coordinate is absent from the configured public repositories.
+          sed -i 's#implementation("org.webrtc:google-webrtc:1.0.32006")#implementation("com.infobip:google-webrtc:1.0.48246t")#' "$gradle_file"
+          # Use the SDK method accessor supported by the resolved WebRTC library.
+          sed -i 's/peerConnection?.iceGatheringState !=/peerConnection?.iceGatheringState() !=/' "$realtime_file"
+          # Do not require a private/local debug keystore in CI; Gradle can use its default debug signing.
+          sed -i 's#debug { signingConfig = signingConfigs.getByName("debugConfig") }#debug { }#' "$gradle_file"
+
+          if grep -Fq 'implementation("org.webrtc:google-webrtc:1.0.32006")' "$gradle_file"; then
+            echo "::error::The unavailable WebRTC dependency was not replaced."
+            exit 1
+          fi
+          if grep -Fq 'peerConnection?.iceGatheringState !=' "$realtime_file"; then
+            echo "::error::The WebRTC method accessor was not corrected."
+            exit 1
+          fi
+          if grep -Fq 'debug { signingConfig = signingConfigs.getByName("debugConfig") }' "$gradle_file"; then
+            echo "::error::The local debug keystore requirement was not removed."
+            exit 1
+          fi
+
+          # Replace the known no-op crash handler with a persistent, private crash report.
+          # Leave any already-implemented CrashHandler untouched.
+          crash_file="$(find "$PROJECT_ROOT/app/src/main/java" -type f -name 'CrashHandler.kt' -print -quit || true)"
+          if [[ -n "$crash_file" ]] && { grep -Fq '/* no-op */' "$crash_file" || grep -Fq 'getLastCrash(context: Context): String? = null' "$crash_file"; }; then
+            package_line="$(grep -m1 '^package ' "$crash_file" || true)"
+            if [[ -z "$package_line" ]]; then
+              echo "::error::CrashHandler.kt has no package declaration; refusing to rewrite it."
+              exit 1
+            fi
+            {
+              printf '%s\n\n' "$package_line"
+              cat <<'KOTLIN'
+import android.app.Application
+import android.content.Context
+import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+object CrashHandler {
+    private const val CRASH_FILE = "mily_last_crash.txt"
+
+    @Volatile
+    private var initialized = false
+
+    @Synchronized
+    fun init(application: Application) {
+        if (initialized) return
+        initialized = true
+
+        val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                val writer = StringWriter()
+                throwable.printStackTrace(PrintWriter(writer))
+                val timestamp = SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                ).format(Date())
+                val report = buildString {
+                    appendLine("MILY — INFORME DE ERROR")
+                    appendLine("Fecha: $timestamp")
+                    appendLine("Hilo: ${thread.name}")
+                    appendLine()
+                    appendLine(writer.toString())
+                }
+                File(application.filesDir, CRASH_FILE).writeText(report)
+            } catch (_: Exception) {
+                // Never let reporting failures replace the original crash.
+            } finally {
+                previousHandler?.uncaughtException(thread, throwable)
+            }
+        }
+    }
+
+    fun getLastCrash(context: Context): String? = try {
+        File(context.filesDir, CRASH_FILE)
+            .takeIf { it.isFile }
+            ?.readText()
+    } catch (_: Exception) {
+        null
+    }
+
+    fun clearLastCrash(context: Context): Boolean = try {
+        File(context.filesDir, CRASH_FILE)
+            .let { !it.exists() || it.delete() }
+    } catch (_: Exception) {
+        false
+    }
+}
+KOTLIN
+            } > "$crash_file"
+            echo "Replaced no-op CrashHandler at $crash_file"
+          fi
+
+          # Repack the corrected source archive so the fixes can be reused outside CI.
+          (cd "$PROJECT_ROOT" && zip -qr "$RUNNER_TEMP/mily-patched.zip" . -x "./.gradle/*" "./build/*" "./app/build/*")
+          unzip -t "$RUNNER_TEMP/mily-patched.zip"
+          echo "Patched source archive ready at $RUNNER_TEMP/mily-patched.zip" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install Android build platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Build debug APK
+        shell: bash
+        env:
+          PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
+        run: |
+          set -euo pipefail
+          "$PROJECT_ROOT/gradlew" --no-daemon --no-configuration-cache :app:assembleDebug
+
+      - name: Verify generated APK
+        shell: bash
+        env:
+          PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
+        run: |
+          set -euo pipefail
+          apk="$(find "$PROJECT_ROOT/app/build/outputs/apk/debug" -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          if [[ -z "$apk" || ! -s "$apk" ]]; then
+            echo "::error::Gradle completed but no non-empty debug APK was produced."
+            exit 1
+          fi
+          if ! command -v apkanalyzer >/dev/null 2>&1; then
+            echo "::error::Android SDK apkanalyzer is unavailable; cannot validate APK metadata."
+            exit 1
+          fi
+          app_id="$(apkanalyzer manifest application-id "$apk")"
+          if [[ -z "$app_id" ]]; then
+            echo "::error::APK manifest does not declare an application ID."
+            exit 1
+          fi
+          {
+            echo "### Android APK verification"
+            echo "- File: `$(basename "$apk")`"
+            echo "- Size: $(stat -c '%s bytes' "$apk")"
+            echo "- Application ID: `$app_id`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified APK: $apk ($app_id)"
+
+      - name: Upload patched source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mily-android-patched-source
+          path: ${{ runner.temp }}/mily-patched.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mily-android-debug-apk
+          path: ${{ runner.temp }}/mily-android/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  persist-patched-source:
+    name: Persist validated Android source fixes
+    needs: assemble-debug
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Download the source archive produced by the successful build
+        uses: actions/download-artifact@v4
+        with:
+          name: mily-android-patched-source
+          path: patched-source
+
+      - name: Commit validated archive if it changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f patched-source/mily-patched.zip
+          unzip -t patched-source/mily-patched.zip
+          cp patched-source/mily-patched.zip mily.zip
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mily.zip
+          if git diff --cached --quiet; then
+            echo "No source archive changes to commit."
+            exit 0
+          fi
+          git commit -m "Fix Android build blockers in MILY archive"
+          # Never force-push; reject the update if the branch changed meanwhile.
+          git push origin "HEAD:${GITHUB_REF_NAME}"
