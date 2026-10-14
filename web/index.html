@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="Interfaz web de MILY, asistente de IA modular.">
+  <title>MILY — Asistente de IA</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <main class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="./" aria-label="MILY inicio">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong>MILY</strong><small>INTELLIGENCE CORE</small></span>
+      </a>
+      <button class="new-chat" id="new-chat" type="button"><span aria-hidden="true">＋</span> Nueva conversación</button>
+      <div class="sidebar-section">
+        <p class="eyebrow">SISTEMA</p>
+        <div class="system-card">
+          <span class="status-dot" id="status-dot"></span>
+          <div><strong id="connection-label">Sin verificar</strong><small id="connection-detail">Comprueba el servidor</small></div>
+        </div>
+      </div>
+      <div class="sidebar-bottom">
+        <button class="settings-button" id="open-settings" type="button" aria-haspopup="dialog">⚙ <span>Conexión y ajustes</span></button>
+        <p class="version">MILY WEB · PREVIEW</p>
+      </div>
+    </aside>
+
+    <section class="workspace" aria-label="Chat con MILY">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="mini-orb" aria-hidden="true"></span><strong>MILY</strong></div>
+        <div class="topbar-status"><span class="status-dot" id="top-status-dot"></span><span id="top-status">Servidor no verificado</span></div>
+        <button class="icon-button" id="top-settings" type="button" aria-label="Abrir ajustes">⚙</button>
+      </header>
+
+      <section class="conversation" id="conversation" aria-live="polite" aria-label="Mensajes">
+        <div class="welcome" id="welcome">
+          <div class="hero-orb" aria-hidden="true"><div class="orb-core"></div><div class="orb-ring ring-a"></div><div class="orb-ring ring-b"></div><div class="orb-particle particle-a"></div><div class="orb-particle particle-b"></div></div>
+          <p class="eyebrow">TU ASISTENTE, EN UN SOLO LUGAR</p>
+          <h1>Hola. Soy <span>MILY.</span></h1>
+          <p class="welcome-copy">Tu espacio de trabajo inteligente. Conecta el servidor para empezar una conversación.</p>
+          <div class="suggestions">
+            <button type="button" data-prompt="Ayúdame a organizar mis tareas de hoy.">Organizar mis tareas <span>↗</span></button>
+            <button type="button" data-prompt="Explícame cómo puedes ayudarme con mi proyecto.">Explorar capacidades <span>↗</span></button>
+            <button type="button" data-prompt="Crea un plan paso a paso para desarrollar una aplicación web.">Crear un plan <span>↗</span></button>
+          </div>
+        </div>
+        <div class="messages" id="messages"></div>
+      </section>
+
+      <form class="composer-wrap" id="chat-form">
+        <label class="composer" for="message-input">
+          <textarea id="message-input" rows="1" maxlength="12000" placeholder="Escribe un mensaje a MILY…" aria-label="Mensaje para MILY"></textarea>
+          <button class="send-button" id="send-button" type="submit" aria-label="Enviar mensaje"><span aria-hidden="true">↑</span></button>
+        </label>
+        <div class="composer-footer"><span>Las respuestas dependen del servidor conectado.</span><span id="char-count">0 / 12000</span></div>
+      </form>
+    </section>
+  </main>
+
+  <dialog id="settings-dialog" class="settings-dialog">
+    <form id="settings-form" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">CONFIGURACIÓN</p><h2>Conexión de MILY</h2></div><button class="icon-button" id="close-settings" type="button" aria-label="Cerrar">×</button></div>
+      <p class="dialog-copy">Indica la dirección base de tu backend. La clave del proveedor de IA debe permanecer en el servidor, nunca en este navegador.</p>
+      <label for="api-base">URL base del backend</label>
+      <input id="api-base" name="api-base" type="url" placeholder="https://tu-servidor.example" autocomplete="url">
+      <p class="field-hint">Se usa <code>/health</code> para comprobar el estado y <code>/v1/mily/responses</code> para conversar.</p>
+      <div class="dialog-actions"><button class="secondary-button" id="test-connection" type="button">Probar conexión</button><button class="primary-button" type="submit">Guardar ajustes</button></div>
+      <p class="settings-feedback" id="settings-feedback" role="status"></p>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
