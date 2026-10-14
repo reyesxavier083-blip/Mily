@@ -2,6 +2,7 @@
   "use strict";
 
   const API_BASE_KEY = "mily.web.apiBase";
+  const API_TOKEN_KEY = "mily.web.apiToken";
   const DEFAULT_MODEL = "gpt-6-astra";
   const $ = (id) => document.getElementById(id);
   const state = { messages: [], busy: false, toastTimer: null };
@@ -9,7 +10,7 @@
     conversation: $("conversation"), welcome: $("welcome"), messages: $("messages"),
     form: $("chat-form"), input: $("message-input"), send: $("send-button"),
     count: $("char-count"), dialog: $("settings-dialog"), settingsForm: $("settings-form"),
-    apiBase: $("api-base"), feedback: $("settings-feedback"), dot: $("status-dot"),
+    apiBase: $("api-base"), apiToken: $("api-token"), feedback: $("settings-feedback"), dot: $("status-dot"),
     topDot: $("top-status-dot"), label: $("connection-label"), detail: $("connection-detail"),
     topStatus: $("top-status"), toast: $("toast")
   };
@@ -20,6 +21,13 @@
 
   function endpoint(path) {
     return apiBase() + path;
+  }
+
+  function apiHeaders(extra = {}) {
+    const headers = { ...extra };
+    const token = (localStorage.getItem(API_TOKEN_KEY) || "").trim();
+    if (token) headers.Authorization = "Bearer " + token;
+    return headers;
   }
 
   function setConnection(online, label, detail) {
@@ -129,7 +137,7 @@
     try {
       const response = await fetch(endpoint("/v1/mily/responses"), {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: apiHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
         body: JSON.stringify({
           model: DEFAULT_MODEL,
           instructions: "Eres MILY, una asistente útil, clara y segura. Responde en el idioma del usuario. No afirmes haber ejecutado acciones que no realizaste.",
@@ -167,6 +175,7 @@
 
   function openSettings() {
     ui.apiBase.value = apiBase();
+    ui.apiToken.value = localStorage.getItem(API_TOKEN_KEY) || "";
     ui.feedback.textContent = "";
     ui.feedback.className = "settings-feedback";
     ui.dialog.showModal();
@@ -206,6 +215,7 @@
       return;
     }
     localStorage.setItem(API_BASE_KEY, candidate);
+    localStorage.setItem(API_TOKEN_KEY, ui.apiToken.value.trim());
     const ok = await checkConnection(true);
     if (!ok && !candidate) {
       localStorage.setItem(API_BASE_KEY, previous);
@@ -222,6 +232,7 @@
       return;
     }
     localStorage.setItem(API_BASE_KEY, candidate);
+    localStorage.setItem(API_TOKEN_KEY, ui.apiToken.value.trim());
     ui.dialog.close();
     checkConnection();
     toast("Ajustes guardados");

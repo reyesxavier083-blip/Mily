@@ -28,6 +28,8 @@ jobs:
           node-version: "22"
       - name: Validate web client syntax
         run: node --check web/app.js
+      - name: Validate backend JavaScript syntax
+        run: node --check backend/mily-openai/server.mjs
       - name: Check backend JavaScript when present
         shell: bash
         run: |
