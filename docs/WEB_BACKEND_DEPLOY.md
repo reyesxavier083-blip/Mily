@@ -9,7 +9,7 @@
 
 ## 1. Publicar el backend
 
-1. Crea un servicio de contenedor Docker usando `backend/mily-openai/Dockerfile` como Dockerfile y `backend/mily-openai` como contexto.
+El repositorio incluye `render.yaml` como plantilla de despliegue. En Render, usa **New + → Blueprint** y selecciona este repositorio; revisa el servicio propuesto y completa los secretos solicitados. También puedes crear manualmente un servicio Docker usando `backend/mily-openai/Dockerfile` y `backend/mily-openai` como directorio raíz.
 2. En los secretos/variables privadas del proveedor configura `OPENAI_API_KEY` y `MILY_API_TOKEN`. No los escribas en el repositorio, issues, frontend o APK.
 3. Configura `MILY_ALLOWED_ORIGINS=https://reyesxavier083-blip.github.io`.
 4. Usa el puerto que el proveedor inyecte o configura `MILY_PORT=8080`; activa HTTPS.

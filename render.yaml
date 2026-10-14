@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: mily-openai-backend
+    runtime: docker
+    plan: free
+    rootDir: backend/mily-openai
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: MILY_API_TOKEN
+        sync: false
+      - key: MILY_ALLOWED_ORIGINS
+        value: https://reyesxavier083-blip.github.io
+      - key: MILY_DEFAULT_MODEL
+        value: gpt-6-astra
