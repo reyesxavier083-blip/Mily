@@ -2,7 +2,7 @@ name: MILY Android archive build
 
 on:
   push:
-    branches: ["mily/android-build-check"]
+    branches: ["main", "mily/android-build-check"]
     paths-ignore:
       - "mily.zip"
   pull_request:
