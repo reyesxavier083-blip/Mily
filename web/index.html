@@ -70,7 +70,9 @@
       <p class="dialog-copy">Indica la dirección base de tu backend. La clave del proveedor de IA debe permanecer en el servidor, nunca en este navegador.</p>
       <label for="api-base">URL base del backend</label>
       <input id="api-base" name="api-base" type="url" placeholder="https://tu-servidor.example" autocomplete="url">
-      <p class="field-hint">Se usa <code>/health</code> para comprobar el estado y <code>/v1/mily/responses</code> para conversar.</p>
+      <label for="api-token">Token de cliente (si el servidor lo exige)</label>
+      <input id="api-token" name="api-token" type="password" placeholder="Token de MILY" autocomplete="off">
+      <p class="field-hint">Se usa <code>/health</code> para comprobar el estado y <code>/v1/mily/responses</code> para conversar. No introduzcas aquí la clave de OpenAI.</p>
       <div class="dialog-actions"><button class="secondary-button" id="test-connection" type="button">Probar conexión</button><button class="primary-button" type="submit">Guardar ajustes</button></div>
       <p class="settings-feedback" id="settings-feedback" role="status"></p>
     </form>
