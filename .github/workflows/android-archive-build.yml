@@ -267,7 +267,7 @@ object CrashHandler {
         false
     }
 }
-KOTLIN
+          KOTLIN
             } > "$crash_file"
             echo "Replaced no-op CrashHandler at $crash_file"
           fi
