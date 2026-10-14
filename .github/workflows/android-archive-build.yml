@@ -1,0 +1,74 @@
+name: MILY Android archive build
+
+on:
+  push:
+    branches: ["mily/android-build-check"]
+  pull_request:
+    paths:
+      - "mily.zip"
+      - ".github/workflows/android-archive-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  assemble-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Validate and extract the repository archive
+        id: archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f mily.zip
+          unzip -t mily.zip
+          destination="$RUNNER_TEMP/mily-android"
+          mkdir -p "$destination"
+          unzip -q mily.zip -d "$destination"
+          wrapper="$(find "$destination" -type f -name gradlew -print -quit)"
+          if [[ -z "$wrapper" ]]; then
+            echo "::error::mily.zip does not contain a Gradle wrapper; cannot build an Android APK from this archive."
+            exit 1
+          fi
+          project_root="$(dirname "$wrapper")"
+          if [[ ! -f "$project_root/app/build.gradle.kts" && ! -f "$project_root/app/build.gradle" ]]; then
+            echo "::error::Found gradlew but no app/build.gradle(.kts) in the same project root."
+            exit 1
+          fi
+          chmod +x "$wrapper"
+          echo "project_root=$project_root" >> "$GITHUB_OUTPUT"
+
+      - name: Accept Android SDK licenses and install build platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Build debug APK
+        shell: bash
+        env:
+          PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
+        run: |
+          set -euo pipefail
+          "$PROJECT_ROOT/gradlew" -p "$PROJECT_ROOT" --no-daemon :app:assembleDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mily-android-debug-apk
+          path: ${{ runner.temp }}/mily-android/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
