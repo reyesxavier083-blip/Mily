@@ -5,7 +5,7 @@
   const API_TOKEN_KEY = "mily.web.apiToken";
   const DEFAULT_MODEL = "gpt-6-astra";
   const $ = (id) => document.getElementById(id);
-  const state = { messages: [], busy: false, toastTimer: null };
+  const state = { messages: [], busy: false, toastTimer: null, userCount: 0, assistantCount: 0, apiOnline: null };
   const ui = {
     conversation: $("conversation"), welcome: $("welcome"), messages: $("messages"),
     form: $("chat-form"), input: $("message-input"), send: $("send-button"),
@@ -30,7 +30,20 @@
     return headers;
   }
 
+  function updateChart() {
+    const max = Math.max(1, state.userCount, state.assistantCount);
+    $("chart-user-value").textContent = String(state.userCount);
+    $("chart-ai-value").textContent = String(state.assistantCount);
+    $("chart-api-value").textContent = state.apiOnline === null ? "—" : state.apiOnline ? "OK" : "OFF";
+    $("chart-user-bar").style.height = (state.userCount / max * 100) + "%";
+    $("chart-ai-bar").style.height = (state.assistantCount / max * 100) + "%";
+    $("chart-api-bar").style.height = (state.apiOnline === null ? 8 : state.apiOnline ? 100 : 24) + "%";
+    $("chart-api-bar").classList.toggle("bar-offline", state.apiOnline === false);
+  }
+
   function setConnection(online, label, detail) {
+    if (online === true || online === false) state.apiOnline = online;
+    updateChart();
     for (const dot of [ui.dot, ui.topDot]) {
       dot.classList.toggle("online", online === true);
       dot.classList.toggle("offline", online === false);
