@@ -11,7 +11,7 @@ on:
       - ".github/workflows/android-archive-build.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   assemble-debug:
@@ -85,15 +85,7 @@ jobs:
 
           # Repack the corrected source archive so the fixes can be reused outside CI.
           (cd "$PROJECT_ROOT" && zip -qr "$RUNNER_TEMP/mily-patched.zip" . -x "./.gradle/*" "./build/*" "./app/build/*")
-          cp "$RUNNER_TEMP/mily-patched.zip" "$GITHUB_WORKSPACE/mily.zip"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add mily.zip
-          if ! git diff --cached --quiet; then
-            git commit -m "Fix Android build blockers in MILY archive"
-            git push
-          fi
+          echo "Patched source archive ready at $RUNNER_TEMP/mily-patched.zip" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install Android build platform
         shell: bash
@@ -113,7 +105,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mily-android-patched-source
-          path: mily.zip
+          path: ${{ runner.temp }}/mily-patched.zip
           if-no-files-found: error
           retention-days: 30
 
