@@ -6,8 +6,9 @@ Asistente de IA modular en desarrollo. MILY se mantiene como proyecto independie
 
 - `mily_core/security.py`: valida rutas para limitar el acceso al espacio de trabajo autorizado.
 - `mily_core/tasks.py`: máquina de estados para el ciclo de vida de tareas; no ejecuta herramientas ni concede permisos.
+- `mily_core/event_bus.py`: bus de eventos en memoria para comunicar módulos de forma desacoplada; informa de errores de suscriptores sin detener los demás.
 - `mily_core/memory.py`: memoria temporal en proceso, con categorías, procedencia, búsqueda y límite de capacidad. No guarda datos en disco.
-- `tests/`: pruebas unitarias para seguridad, tareas y memoria.
+- `tests/`: pruebas unitarias para seguridad, tareas, memoria y eventos.
 - `docs/MEJORA_ARQUITECTURA_MILY.md`: hoja de ruta técnica.
 
 ## Ejecutar las pruebas
