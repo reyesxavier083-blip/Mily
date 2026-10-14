@@ -11,9 +11,22 @@ Asistente de IA modular en desarrollo. MILY se mantiene como proyecto independie
 - `mily_core/event_bus.py`: bus de eventos en memoria, con aislamiento entre suscriptores y registro de resultados de despacho sin registrar los payloads.
 - `mily_core/observability.py`: logs JSON con límites de tamaño y redacción de patrones comunes de credenciales.
 - `mily_core/memory.py`: memoria temporal en proceso con categorías, procedencia, búsqueda y límite de capacidad. No guarda datos en disco.
+- `web/`: interfaz web adaptable (HTML/CSS/JavaScript) que se conecta al backend mediante `/health` y `/v1/mily/responses`.
 - `tests/`: pruebas unitarias de seguridad, tareas, memoria, eventos, observabilidad y coordinación de tareas.
 - `docs/MEJORA_ARQUITECTURA_MILY.md`: hoja de ruta técnica.
 - `docs/STATUS.md`: estado comprobado y bloqueos pendientes del proyecto.
+- `docs/WEB_ANDROID_ARQUITECTURA.md`: contrato de integración web/Android y requisitos de despliegue.
+
+## MILY Web
+
+La interfaz inicial está en `web/index.html`. Puede abrirse para revisar el diseño, pero para conversar con el modelo necesita un backend accesible. Abre **Conexión y ajustes** e indica la URL base del servidor. La web no contiene ni solicita una clave API del proveedor.
+
+El backend esperado expone:
+
+- `GET /health`
+- `POST /v1/mily/responses`
+
+El contrato sigue el backend Node.js de MILY incluido en el archivo V18 integrado por separado; dicho backend no está expandido en este repositorio. Antes de publicar el servicio, añade autenticación, límites de frecuencia/coste y HTTPS. Revisa `docs/WEB_ANDROID_ARQUITECTURA.md`.
 
 ## Ejecutar las pruebas
 
@@ -22,6 +35,12 @@ Requiere Python 3.10 o posterior. Desde la raíz del repositorio:
 ```bash
 python -m compileall -q mily_core tests
 python -m unittest discover -s tests -v
+```
+
+Si tienes Node.js instalado, valida también el JavaScript de la interfaz:
+
+```bash
+node --check web/app.js
 ```
 
 GitHub Actions ejecuta automáticamente las comprobaciones de sintaxis y las pruebas en los cambios de `main` y en pull requests.

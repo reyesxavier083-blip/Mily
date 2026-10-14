@@ -2,7 +2,7 @@ name: MILY quality checks
 
 on:
   push:
-    branches: [main, "mily/**"]
+    branches: [main, "mily/**", "feat/**"]
   pull_request:
 
 permissions:
@@ -22,11 +22,16 @@ jobs:
         run: python -m compileall -q mily_core tests
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+      - name: Check MILY Web JavaScript
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate web client syntax
+        run: node --check web/app.js
       - name: Check backend JavaScript when present
         shell: bash
         run: |
           if compgen -G "backend/mily-openai/*.mjs" > /dev/null; then
-            node --version
             for file in backend/mily-openai/*.mjs; do node --check "$file"; done
           else
             echo "Backend archive is not expanded in this repository; JavaScript check skipped."
