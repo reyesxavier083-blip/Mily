@@ -1,8 +1,12 @@
 """Tests for MILY's in-process event bus."""
 
+import json
+import logging
 import unittest
+from io import StringIO
 
 from mily_core.event_bus import EventBus
+from mily_core.observability import StructuredLogger
 
 
 class EventBusTests(unittest.TestCase):
@@ -47,6 +51,20 @@ class EventBusTests(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertIsInstance(errors[0], RuntimeError)
         self.assertEqual(received, [42])
+
+    def test_logs_dispatch_metadata_without_payload(self) -> None:
+        stream = StringIO()
+        logger = logging.Logger("mily-event-test", level=logging.INFO)
+        logger.addHandler(logging.StreamHandler(stream))
+        bus = EventBus(logger=StructuredLogger(logger))
+
+        bus.publish("private.event", {"message": "private user content"})
+
+        record = json.loads(stream.getvalue().strip())
+        self.assertEqual(record["event"], "event.dispatched")
+        self.assertEqual(record["details"]["name"], "private.event")
+        self.assertEqual(record["details"]["subscriber_count"], 0)
+        self.assertNotIn("private user content", stream.getvalue())
 
     def test_rejects_invalid_event_name(self) -> None:
         bus = EventBus()
