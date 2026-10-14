@@ -50,11 +50,10 @@ jobs:
           chmod +x "$wrapper"
           echo "project_root=$project_root" >> "$GITHUB_OUTPUT"
 
-      - name: Accept Android SDK licenses and install build platform
+      - name: Install Android build platform
         shell: bash
         run: |
           set -euo pipefail
-          yes | sdkmanager --licenses >/dev/null
           sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Build debug APK
