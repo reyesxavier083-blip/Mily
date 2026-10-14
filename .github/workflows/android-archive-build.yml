@@ -136,7 +136,6 @@ jobs:
             cat > "$test_file" <<'KOTLIN'
           package com.example
 
-          import androidx.compose.ui.test.assertExists
           import androidx.compose.ui.test.junit4.createComposeRule
           import androidx.compose.ui.test.onRoot
           import androidx.compose.ui.test.onNodeWithText
@@ -167,13 +166,22 @@ jobs:
                   )
                 }
               }
-              composeTestRule.onRoot().assertExists()
-              composeTestRule.onNodeWithText("MILY", substring = true).assertExists()
+              composeTestRule.onRoot().fetchSemanticsNode()
+              composeTestRule.onNodeWithText("MILY", substring = true).fetchSemanticsNode()
             }
           }
           KOTLIN
           fi
           rm -f "$PROJECT_ROOT/app/src/test/screenshots/greeting.png"
+
+          # Fix the migrated engine test to use the real companion-object template list.
+          unit_test_file="$PROJECT_ROOT/app/src/test/java/com/example/ExampleRobolectricTest.kt"
+          if [[ -f "$unit_test_file" ]]; then
+            sed -i \
+              -e 's/import com.example.data.model.defaultMilyEngineTemplates/import com.example.data.model.MilyEngineTemplate/' \
+              -e 's/val templates = defaultMilyEngineTemplates/val templates = MilyEngineTemplate.ALL_TEMPLATES/' \
+              -e 's/it\.type/it.engineType/' "$unit_test_file"
+          fi
 
           # The old org.webrtc coordinate is absent from the configured public repositories.
           sed -i 's#implementation("org.webrtc:google-webrtc:1.0.32006")#implementation("com.infobip:google-webrtc:1.0.48246t")#' "$gradle_file"
