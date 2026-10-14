@@ -75,23 +75,23 @@ jobs:
 
           # Consolidate the archived product branding and symbols under MILY.
           # Preserve legacy on-device preference/database keys so existing installs keep their data.
-          find "$PROJECT_ROOT" -type f \\( -name '*.kt' -o -name '*.xml' -o -name '*.tsx' -o -name '*.ts' -o -name '*.json' \\) \\
-            -not -path '*/build/*' -print0 | xargs -0 -r sed -i \\
-              -e 's/NexusEnginesHubSheet/MilyEnginesHubSheet/g' \\
-              -e 's/NexusEngineTemplate/MilyEngineTemplate/g' \\
-              -e 's/NexusEngineType/MilyEngineType/g' \\
-              -e 's/defaultNexusEngineTemplates/defaultMilyEngineTemplates/g' \\
-              -e 's/onOpenNexusEngines/onOpenMilyEngines/g' \\
-              -e 's/showNexusEnginesSheet/showMilyEnginesSheet/g' \\
-              -e 's/nexus_engine/mily_engine/g' \\
-              -e 's/nexus_hub/mily_hub/g' \\
-              -e 's/NEXUS/MILY/g' \\
-              -e 's/Nexus/Mily/g' \\
+          find "$PROJECT_ROOT" -type f \( -name '*.kt' -o -name '*.xml' -o -name '*.tsx' -o -name '*.ts' -o -name '*.json' \) \
+            -not -path '*/build/*' -print0 | xargs -0 -r sed -i \
+              -e 's/NexusEnginesHubSheet/MilyEnginesHubSheet/g' \
+              -e 's/NexusEngineTemplate/MilyEngineTemplate/g' \
+              -e 's/NexusEngineType/MilyEngineType/g' \
+              -e 's/defaultNexusEngineTemplates/defaultMilyEngineTemplates/g' \
+              -e 's/onOpenNexusEngines/onOpenMilyEngines/g' \
+              -e 's/showNexusEnginesSheet/showMilyEnginesSheet/g' \
+              -e 's/nexus_engine/mily_engine/g' \
+              -e 's/nexus_hub/mily_hub/g' \
+              -e 's/NEXUS/MILY/g' \
+              -e 's/Nexus/Mily/g' \
               -e 's/nexus/mily/g'
           # These names are persisted on user devices; changing them would discard old data.
-          find "$PROJECT_ROOT" -type f \\( -name '*.kt' -o -name '*.xml' -o -name '*.tsx' -o -name '*.ts' -o -name '*.json' \\) \\
-            -not -path '*/build/*' -print0 | xargs -0 -r sed -i \\
-              -e 's/mily_database/nexus_database/g' \\
+          find "$PROJECT_ROOT" -type f \( -name '*.kt' -o -name '*.xml' -o -name '*.tsx' -o -name '*.ts' -o -name '*.json' \) \
+            -not -path '*/build/*' -print0 | xargs -0 -r sed -i \
+              -e 's/mily_database/nexus_database/g' \
               -e 's/mily_crash_prefs/nexus_crash_prefs/g'
           old_hub="$PROJECT_ROOT/app/src/main/java/com/example/ui/components/NexusEnginesHubSheet.kt"
           new_hub="$PROJECT_ROOT/app/src/main/java/com/example/ui/components/MilyEnginesHubSheet.kt"
