@@ -45,6 +45,16 @@ class PermissionManagerTests(unittest.TestCase):
         )
         self.assertEqual(result.decision, PermissionDecision.ALLOW)
 
+    def test_confirmation_is_not_remembered_between_calls(self) -> None:
+        approved = self.manager.authorize(
+            "write_project_file", ToolRisk.WRITE, confirmed=True
+        )
+        next_call = self.manager.authorize("write_project_file", ToolRisk.WRITE)
+        self.assertEqual(approved.decision, PermissionDecision.ALLOW)
+        self.assertEqual(
+            next_call.decision, PermissionDecision.REQUIRE_CONFIRMATION
+        )
+
     def test_external_operation_requires_fresh_confirmation(self) -> None:
         result = self.manager.authorize("send_external_request", ToolRisk.EXTERNAL)
         self.assertEqual(result.decision, PermissionDecision.REQUIRE_CONFIRMATION)
