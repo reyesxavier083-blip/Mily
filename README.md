@@ -5,6 +5,7 @@ Asistente de IA modular en desarrollo. MILY se mantiene como proyecto independie
 ## Módulos actuales
 
 - `mily_core/security.py`: valida rutas relativas y bloquea escapes del espacio de trabajo, incluidos enlaces simbólicos.
+- `mily_core/permission_manager.py`: autoriza herramientas mediante una lista de confianza y exige confirmación explícita para escritura, acciones externas y operaciones destructivas; no ejecuta herramientas ni conserva aprobaciones.
 - `mily_core/tasks.py`: máquina de estados con transiciones permitidas para tareas; no ejecuta herramientas ni concede permisos.
 - `mily_core/task_manager.py`: coordina creación, inicio, éxito, fallo y cancelación de tareas; publica eventos y registra duración sin escribir errores crudos en los logs.
 - `mily_core/event_bus.py`: bus de eventos en memoria, con aislamiento entre suscriptores y registro de resultados de despacho sin registrar los payloads.
