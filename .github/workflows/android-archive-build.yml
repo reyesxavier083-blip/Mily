@@ -3,13 +3,15 @@ name: MILY Android archive build
 on:
   push:
     branches: ["mily/android-build-check"]
+    paths-ignore:
+      - "mily.zip"
   pull_request:
     paths:
       - "mily.zip"
       - ".github/workflows/android-archive-build.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   assemble-debug:
@@ -50,20 +52,47 @@ jobs:
           chmod +x "$wrapper"
           echo "project_root=$project_root" >> "$GITHUB_OUTPUT"
 
-      - name: Patch retired WebRTC dependency in the temporary build copy
+      - name: Repair archived Android build blockers
         shell: bash
         env:
           PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
         run: |
           set -euo pipefail
           gradle_file="$PROJECT_ROOT/app/build.gradle.kts"
+          realtime_file="$PROJECT_ROOT/app/src/main/java/com/example/data/ai/MilyRealtimeClient.kt"
+          test -f "$gradle_file"
+          test -f "$realtime_file"
+
+          # The old org.webrtc coordinate is absent from the configured public repositories.
+          sed -i 's#implementation("org.webrtc:google-webrtc:1.0.32006")#implementation("com.infobip:google-webrtc:1.0.48246t")#' "$gradle_file"
+          # Use the SDK method accessor supported by the resolved WebRTC library.
+          sed -i 's/peerConnection?.iceGatheringState !=/peerConnection?.iceGatheringState() !=/' "$realtime_file"
+          # Do not require a private/local debug keystore in CI; Gradle can use its default debug signing.
+          sed -i 's#debug { signingConfig = signingConfigs.getByName("debugConfig") }#debug { }#' "$gradle_file"
+
           if grep -Fq 'implementation("org.webrtc:google-webrtc:1.0.32006")' "$gradle_file"; then
-            sed -i 's#implementation("org.webrtc:google-webrtc:1.0.32006")#implementation("com.infobip:google-webrtc:1.0.48246t")#' "$gradle_file"
-            echo "::notice::The archived WebRTC coordinate is unavailable from configured repositories; using the published Infobip WebRTC artifact in this temporary CI copy."
-          fi
-          if grep -Fq 'implementation("org.webrtc:google-webrtc:1.0.32006")' "$gradle_file"; then
-            echo "::error::The obsolete WebRTC dependency was not replaced."
+            echo "::error::The unavailable WebRTC dependency was not replaced."
             exit 1
+          fi
+          if grep -Fq 'peerConnection?.iceGatheringState !=' "$realtime_file"; then
+            echo "::error::The WebRTC method accessor was not corrected."
+            exit 1
+          fi
+          if grep -Fq 'debug { signingConfig = signingConfigs.getByName("debugConfig") }' "$gradle_file"; then
+            echo "::error::The local debug keystore requirement was not removed."
+            exit 1
+          fi
+
+          # Repack the corrected source archive so the fixes can be reused outside CI.
+          (cd "$PROJECT_ROOT" && zip -qr "$RUNNER_TEMP/mily-patched.zip" . -x "./.gradle/*" "./build/*" "./app/build/*")
+          cp "$RUNNER_TEMP/mily-patched.zip" "$GITHUB_WORKSPACE/mily.zip"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mily.zip
+          if ! git diff --cached --quiet; then
+            git commit -m "Fix Android build blockers in MILY archive"
+            git push
           fi
 
       - name: Install Android build platform
@@ -80,10 +109,18 @@ jobs:
           set -euo pipefail
           "$PROJECT_ROOT/gradlew" --no-daemon --no-configuration-cache :app:assembleDebug
 
+      - name: Upload patched source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mily-android-patched-source
+          path: mily.zip
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: mily-android-debug-apk
           path: ${{ runner.temp }}/mily-android/**/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
