@@ -188,6 +188,34 @@ KOTLIN
           set -euo pipefail
           "$PROJECT_ROOT/gradlew" --no-daemon --no-configuration-cache :app:assembleDebug
 
+      - name: Verify generated APK
+        shell: bash
+        env:
+          PROJECT_ROOT: ${{ steps.archive.outputs.project_root }}
+        run: |
+          set -euo pipefail
+          apk="$(find "$PROJECT_ROOT/app/build/outputs/apk/debug" -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          if [[ -z "$apk" || ! -s "$apk" ]]; then
+            echo "::error::Gradle completed but no non-empty debug APK was produced."
+            exit 1
+          fi
+          if ! command -v apkanalyzer >/dev/null 2>&1; then
+            echo "::error::Android SDK apkanalyzer is unavailable; cannot validate APK metadata."
+            exit 1
+          fi
+          app_id="$(apkanalyzer manifest application-id "$apk")"
+          if [[ -z "$app_id" ]]; then
+            echo "::error::APK manifest does not declare an application ID."
+            exit 1
+          fi
+          {
+            echo "### Android APK verification"
+            echo "- File: `$(basename "$apk")`"
+            echo "- Size: $(stat -c '%s bytes' "$apk")"
+            echo "- Application ID: `$app_id`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified APK: $apk ($app_id)"
+
       - name: Upload patched source archive
         uses: actions/upload-artifact@v4
         with:
