@@ -11,14 +11,17 @@ on:
       - ".github/workflows/android-archive-build.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   assemble-debug:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -116,3 +119,23 @@ jobs:
           path: ${{ runner.temp }}/mily-android/**/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Sync and push repair commit back to branch
+        if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin "${GITHUB_REF_NAME}" --prune
+          git checkout -B "${GITHUB_REF_NAME}" "origin/${GITHUB_REF_NAME}" || git checkout -B "${GITHUB_REF_NAME}"
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Fix Android build blockers in MILY archive"
+          git push origin HEAD:"${GITHUB_REF_NAME}" --force-with-lease
