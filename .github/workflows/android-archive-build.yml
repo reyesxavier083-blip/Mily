@@ -1,6 +1,7 @@
 name: MILY Android archive build
 
 on:
+  workflow_dispatch:
   push:
     branches: ["main", "mily/android-build-check"]
     paths-ignore:
