@@ -240,7 +240,7 @@ KOTLIN
   persist-patched-source:
     name: Persist validated Android source fixes
     needs: assemble-debug
-    if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
