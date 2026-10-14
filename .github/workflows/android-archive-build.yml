@@ -75,24 +75,24 @@ jobs:
 
           # Consolidate archived product branding and identifiers under MILY.
           # Include Gradle settings and documentation, not just application source files.
-          find "$PROJECT_ROOT" -type f \\( -path '*/build/*' -o -path '*/.gradle/*' \\) -prune -o \\
+          find "$PROJECT_ROOT" -type f \( -path '*/build/*' -o -path '*/.gradle/*' \) -prune -o \
             -type f -print0 | while IFS= read -r -d '' file; do
               case "$file" in
                 *.kt|*.xml|*.tsx|*.ts|*.json|*.kts|*.gradle|*.properties|*.toml|*.md|*.sh|*.bat|*.html|*.css|*.yml|*.yaml|*.txt|*.pro)
-                  sed -i \\
-                    -e 's/NEXUS/MILY/g' \\
-                    -e 's/Nexus/Mily/g' \\
+                  sed -i \
+                    -e 's/NEXUS/MILY/g' \
+                    -e 's/Nexus/Mily/g' \
                     -e 's/nexus/mily/g' "$file"
                   ;;
               esac
             done
           # Keep the existing Room database and crash-preference names for upgrade compatibility.
-          find "$PROJECT_ROOT" -type f \\( -path '*/build/*' -o -path '*/.gradle/*' \\) -prune -o \\
+          find "$PROJECT_ROOT" -type f \( -path '*/build/*' -o -path '*/.gradle/*' \) -prune -o \
             -type f -print0 | while IFS= read -r -d '' file; do
               case "$file" in
                 *.kt|*.xml|*.tsx|*.ts|*.json|*.kts|*.gradle|*.properties|*.toml|*.md|*.sh|*.bat|*.html|*.css|*.yml|*.yaml|*.txt|*.pro)
-                  sed -i \\
-                    -e 's/mily_database/nexus_database/g' \\
+                  sed -i \
+                    -e 's/mily_database/nexus_database/g' \
                     -e 's/mily_crash_prefs/nexus_crash_prefs/g' "$file"
                   ;;
               esac
@@ -113,11 +113,11 @@ jobs:
             fi
           done < <(find "$PROJECT_ROOT" -depth -iname '*nexus*' -print0)
           # Fail if any legacy identifier remains outside the deliberately preserved storage keys.
-          remaining="$(grep -RInE 'NEXUS|Nexus|nexus' "$PROJECT_ROOT" \\
-            --include='*.kt' --include='*.xml' --include='*.tsx' --include='*.ts' \\
-            --include='*.json' --include='*.kts' --include='*.gradle' --include='*.properties' \\
-            --include='*.toml' --include='*.md' --include='*.sh' --include='*.bat' \\
-            --include='*.html' --include='*.css' --include='*.yml' --include='*.yaml' \\
+          remaining="$(grep -RInE 'NEXUS|Nexus|nexus' "$PROJECT_ROOT" \
+            --include='*.kt' --include='*.xml' --include='*.tsx' --include='*.ts' \
+            --include='*.json' --include='*.kts' --include='*.gradle' --include='*.properties' \
+            --include='*.toml' --include='*.md' --include='*.sh' --include='*.bat' \
+            --include='*.html' --include='*.css' --include='*.yml' --include='*.yaml' \
             --include='*.txt' --include='*.pro' | grep -vE 'nexus_database|nexus_crash_prefs' || true)"
           if [[ -n "$remaining" ]]; then
             echo "::error::Legacy NEXUS references remain after migration:"
