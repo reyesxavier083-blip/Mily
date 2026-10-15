@@ -2,6 +2,9 @@ import express from "express";
 import OpenAI, { toFile } from "openai";
 import multer from "multer";
 import crypto from "node:crypto";
+import { assertProductionAuthConfig } from "./config.mjs";
+
+assertProductionAuthConfig(process.env);
 
 const app = express();
 app.disable("x-powered-by");
