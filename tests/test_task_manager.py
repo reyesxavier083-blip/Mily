@@ -69,14 +69,25 @@ class TaskManagerTests(unittest.TestCase):
             self.manager.succeed("t-5")
         self.assertEqual(self.manager.get("t-5").status, TaskStatus.PENDING)
 
-    def test_snapshot_does_not_allow_status_mutation(self) -> None:
-        self.manager.create("t-6", metadata={"mode": "safe"})
-        snapshot = self.manager.get("t-6")
-        snapshot.status = TaskStatus.FAILED
-        snapshot.metadata["mode"] = "changed"
+    def test_snapshot_isolates_nested_metadata_and_result(self) -> None:
+        source_metadata = {"options": {"labels": ["original"]}}
+        self.manager.create("t-6", metadata=source_metadata)
+        source_metadata["options"]["labels"].append("mutated-after-create")
+
+        self.manager.start("t-6")
+        source_result = {"output": {"items": ["original"]}}
+        returned = self.manager.succeed("t-6", result=source_result)
+        source_result["output"]["items"].append("mutated-after-success")
+        returned.metadata["options"]["labels"].append("mutated-return-value")
+        returned.result["output"]["items"].append("mutated-return-value")
+
         stored = self.manager.get("t-6")
-        self.assertEqual(stored.status, TaskStatus.PENDING)
-        self.assertEqual(stored.metadata["mode"], "safe")
+        self.assertEqual(stored.metadata["options"]["labels"], ["original"])
+        self.assertEqual(stored.result["output"]["items"], ["original"])
+
+        listed = self.manager.list_tasks()
+        listed[0].result["output"]["items"].append("mutated-list-result")
+        self.assertEqual(self.manager.get("t-6").result["output"]["items"], ["original"])
 
     def test_requires_non_empty_error(self) -> None:
         self.manager.create("t-7")
