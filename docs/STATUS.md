@@ -17,13 +17,15 @@
 
 ## Estado de automatizaciones y bloqueos
 
-- **Python:** pruebas correctas en el último commit validado.
-- **Calidad:** comprobaciones correctas en el último commit validado; el commit más reciente ajusta filtros del workflow y tiene checks nuevos pendientes.
-- **Android:** la compilación de `mily.zip` está ejecutándose en GitHub Actions. Aún no declarar APK validado hasta que terminen build, pruebas unitarias, inspección del APK y carga del artefacto.
+- **Python:** workflow de pruebas [#38758625696](https://github.com/reyesxavier083-blip/Mily/actions/runs/38758625696) pasó en el commit `784fb736d91afd271a524ed0ba8ebeb72fb03e15`.
+- **Calidad:** workflow [#38758625347](https://github.com/reyesxavier083-blip/Mily/actions/runs/38758625347) pasó en el commit `784fb736d91afd271a524ed0ba8ebeb72fb03e15`.
+- **Android:** el workflow [MILY Android archive build #38758505149](https://github.com/reyesxavier083-blip/Mily/actions/runs/38758505149) terminó correctamente: compilación, pruebas unitarias, verificación del APK y persistencia de las fuentes parcheadas pasaron. El artefacto APK está disponible en GitHub Actions hasta el 2026-11-14. Falta instalarlo y probarlo en un dispositivo/emulador. La ejecución se inició sobre el commit `9006eab2d50745aa6fd4947cd1df78ad8f07e1d0`.
 - **Web / GitHub Pages:** el despliegue falló en `Configure GitHub Pages` porque el repositorio todavía no tiene un sitio Pages habilitado/configurado. La sintaxis de `web/app.js` pasó. El workflow no puede activar Pages por sí solo con la configuración actual.
 - **Backend:** código versionado, pero todavía no desplegado en un proveedor externo. No se ha comprobado una conversación real contra un backend público.
 
 ## Siguientes pasos necesarios
+
+Consulta `docs/RELEASE_CHECKLIST.md` para la lista operativa completa y los criterios de salida.
 
 1. Habilitar GitHub Pages desde Settings → Pages → Build and deployment → Source: GitHub Actions.
 2. Desplegar `backend/mily-openai` en un proveedor autorizado con HTTPS y configurar como secretos `OPENAI_API_KEY` y `MILY_API_TOKEN`; configurar `MILY_ALLOWED_ORIGINS` con el origen web publicado.
