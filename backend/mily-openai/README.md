@@ -22,6 +22,15 @@ Requiere Node.js 20 o superior.
 - El limitador incluido es básico y en memoria; para despliegues con varias instancias, usa un rate limiter compartido.
 - La memoria incluida vive en RAM y se pierde al reiniciar. No la trates como almacenamiento persistente.
 
+## Validación local
+
+```bash
+npm run check
+npm test
+```
+
+Las pruebas de configuración verifican que producción rechace tokens ausentes o en blanco y que el desarrollo local siga permitiendo omitir el token.
+
 ## Rutas
 
 - `GET /health`: estado del servicio y modelo predeterminado (sin secretos).
