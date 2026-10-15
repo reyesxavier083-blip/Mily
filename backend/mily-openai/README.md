@@ -12,6 +12,15 @@ Requiere Node.js 20 o superior.
 4. Comprueba `GET /health`.
 5. En MILY Web, abre **Conexión y ajustes**, introduce la URL del servidor y, si está habilitado, el token de cliente.
 
+## Validación local
+
+```bash
+npm run check
+npm test
+```
+
+Las pruebas verifican que producción rechace tokens ausentes o en blanco y que el desarrollo local permita omitir el token.
+
 ## Despliegue público
 
 - Usa este directorio como contexto de construcción Docker.
