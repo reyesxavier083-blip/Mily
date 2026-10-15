@@ -20,3 +20,22 @@ jobs:
           python-version: "3.12"
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+
+  backend-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/mily-openai
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          path: .
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check backend syntax
+        run: npm run check
+      - name: Test production authentication guard
+        run: npm test
