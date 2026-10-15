@@ -7,10 +7,12 @@ on:
     paths:
       - "mily.zip"
       - ".github/workflows/android-archive-build.yml"
+      - ".github/scripts/patch_android_backend_auth.py"
   pull_request:
     paths:
       - "mily.zip"
       - ".github/workflows/android-archive-build.yml"
+      - ".github/scripts/patch_android_backend_auth.py"
 
 permissions:
   contents: read
@@ -209,6 +211,8 @@ jobs:
           fi
 
           # The archived app already has an implemented CrashHandler; leave it unchanged.
+          # Keep backend credentials out of BuildConfig/APK; let the app read its own token securely.
+          python3 "$GITHUB_WORKSPACE/.github/scripts/patch_android_backend_auth.py" "$PROJECT_ROOT"
           # Repack the corrected source archive so the fixes can be reused outside CI.
           (cd "$PROJECT_ROOT" && zip -qr "$RUNNER_TEMP/mily-patched.zip" . -x "./.gradle/*" "./build/*" "./app/build/*")
           unzip -t "$RUNNER_TEMP/mily-patched.zip"
