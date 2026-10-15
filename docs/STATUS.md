@@ -8,10 +8,12 @@
 - PR #16 integrado: corrección del flujo de publicación web y panel de actividad de sesión.
 - PR #19 integrado: el backend rechaza iniciar en `NODE_ENV=production` si `MILY_API_TOKEN` falta o está vacío; desarrollo local conserva el comportamiento sin token. Incluye cuatro pruebas Node y CI de backend.
 - PR #20 integrado: los contadores de mensajes del usuario y respuestas exitosas actualizan el gráfico de sesión.
+- PR #21 integrado: el backend respeta el puerto `PORT` inyectado por el hosting y usa `MILY_PORT`/8080 como fallback; la sintaxis y pruebas CI pasaron en la rama.
 - El PR #18 obsoleto se cerró como duplicado; su corrección quedó reaplicada en el PR #19.
 - Las pruebas Python y las comprobaciones de calidad terminaron correctamente en el commit principal `aa243b943b97bf59886b8ae29b84494502836cb6`.
 - En las ramas de seguridad y del gráfico, las pruebas y comprobaciones correspondientes pasaron.
-- Se ajustó el workflow Android para que solo se ejecute al cambiar `mily.zip` o el propio workflow, y se añadió concurrencia por rama para reducir builds redundantes. Los nuevos checks del cambio de workflow deben terminar.
+- Se ajustó el workflow Android para que solo se ejecute al cambiar `mily.zip` o el propio workflow, y se añadió concurrencia por rama para reducir builds redundantes.
+- Se corrigió la persistencia del archivo Android: el job actualiza primero la rama y se niega a sobrescribir `mily.zip` si cambió desde que inició la compilación. Los checks de este ajuste de workflow pasaron; el build Android actual sigue pendiente.
 
 ## Estado de automatizaciones y bloqueos
 
