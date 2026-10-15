@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -266,14 +266,14 @@ jobs:
           fi
           {
             echo "### Android APK verification"
-            echo "- File: `$(basename "$apk")`"
+            echo "- File: $(basename "$apk")"
             echo "- Size: $(stat -c '%s bytes' "$apk")"
-            echo "- Application ID: `$app_id`"
+            echo "- Application ID: $app_id"
           } >> "$GITHUB_STEP_SUMMARY"
           echo "Verified APK: $apk ($app_id)"
 
       - name: Upload patched source archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mily-android-patched-source
           path: ${{ runner.temp }}/mily-patched.zip
@@ -281,7 +281,7 @@ jobs:
           retention-days: 30
 
       - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mily-android-debug-apk
           path: ${{ runner.temp }}/mily-android/**/build/outputs/apk/debug/*.apk
@@ -297,7 +297,7 @@ jobs:
       contents: write
     steps:
       - name: Check out source branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: true
