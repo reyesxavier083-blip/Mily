@@ -51,6 +51,15 @@
             <button type="button" data-prompt="Crea un plan paso a paso para desarrollar una aplicación web.">Crear un plan <span>↗</span></button>
           </div>
         </div>
+        <section class="activity-panel" aria-labelledby="activity-title">
+          <div class="activity-heading"><div><p class="eyebrow">DIAGNÓSTICO EN VIVO</p><h2 id="activity-title">Actividad de MILY</h2></div><span class="activity-live"><i></i> SESIÓN LOCAL</span></div>
+          <div class="activity-chart" role="img" aria-label="Actividad de la sesión: mensajes, respuestas y estado del servidor">
+            <div class="chart-column"><span class="chart-value" id="chart-user-value">0</span><div class="chart-track"><div class="chart-bar user-bar" id="chart-user-bar"></div></div><span class="chart-label">Mensajes</span></div>
+            <div class="chart-column"><span class="chart-value" id="chart-ai-value">0</span><div class="chart-track"><div class="chart-bar ai-bar" id="chart-ai-bar"></div></div><span class="chart-label">Respuestas</span></div>
+            <div class="chart-column"><span class="chart-value" id="chart-api-value">—</span><div class="chart-track"><div class="chart-bar api-bar" id="chart-api-bar"></div></div><span class="chart-label">Servidor</span></div>
+          </div>
+          <p class="chart-note">Métricas reales de esta sesión y de la última comprobación de conexión; no son estadísticas globales.</p>
+        </section>
         <div class="messages" id="messages"></div>
       </section>
 
