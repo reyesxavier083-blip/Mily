@@ -310,6 +310,13 @@ jobs:
           set -euo pipefail
           test -f patched-source/mily-patched.zip
           unzip -t patched-source/mily-patched.zip
+          # Refresh to the latest branch before committing, and never overwrite a newer source archive.
+          git fetch origin "${GITHUB_REF_NAME}"
+          if ! git diff --quiet "${GITHUB_SHA}" "origin/${GITHUB_REF_NAME}" -- mily.zip; then
+            echo "The Android archive changed after this build started; refusing to overwrite newer source."
+            exit 0
+          fi
+          git checkout -B "${GITHUB_REF_NAME}" "origin/${GITHUB_REF_NAME}"
           cp patched-source/mily-patched.zip mily.zip
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -319,5 +326,5 @@ jobs:
             exit 0
           fi
           git commit -m "Fix Android build blockers in MILY archive"
-          # Never force-push; reject the update if the branch changed meanwhile.
+          # Never force-push; reject the update if the branch changes after the fetch.
           git push origin "HEAD:${GITHUB_REF_NAME}"
