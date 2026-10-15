@@ -4,32 +4,33 @@
 
 ## Cambios integrados en main
 
-- PR #17 integrado: aislamiento profundo de metadatos y resultados de tareas. Las pruebas de Python y las comprobaciones de calidad pasaron en la rama antes de integrar.
-- PR #16 integrado: corrección del flujo de GitHub Pages y panel de actividad de sesión.
-- PR #19 integrado: el backend ahora rechaza iniciar en `NODE_ENV=production` si `MILY_API_TOKEN` falta o está vacío; desarrollo local conserva el comportamiento sin token. Incluye cuatro pruebas Node y un job de CI para backend.
-- PR #20 integrado: el contador de mensajes del usuario y el de respuestas reales de MILY actualizan el gráfico de sesión.
-- El PR #18 anterior se cerró como duplicado obsoleto; su corrección quedó reaplicada y validada en el PR #19.
-- Las pruebas de Python del último commit principal terminaron correctamente.
-- En la rama de seguridad, las pruebas Python, la sintaxis del backend y las cuatro pruebas del guard de autenticación pasaron en GitHub Actions.
-- En la rama del gráfico, las pruebas y la comprobación de calidad de JavaScript pasaron.
+- PR #17 integrado: aislamiento profundo de metadatos y resultados de tareas, con prueba de regresión para mutaciones anidadas.
+- PR #16 integrado: corrección del flujo de publicación web y panel de actividad de sesión.
+- PR #19 integrado: el backend rechaza iniciar en `NODE_ENV=production` si `MILY_API_TOKEN` falta o está vacío; desarrollo local conserva el comportamiento sin token. Incluye cuatro pruebas Node y CI de backend.
+- PR #20 integrado: los contadores de mensajes del usuario y respuestas exitosas actualizan el gráfico de sesión.
+- El PR #18 obsoleto se cerró como duplicado; su corrección quedó reaplicada en el PR #19.
+- Las pruebas Python y las comprobaciones de calidad terminaron correctamente en el commit principal `aa243b943b97bf59886b8ae29b84494502836cb6`.
+- En las ramas de seguridad y del gráfico, las pruebas y comprobaciones correspondientes pasaron.
+- Se ajustó el workflow Android para que solo se ejecute al cambiar `mily.zip` o el propio workflow, y se añadió concurrencia por rama para reducir builds redundantes. Los nuevos checks del cambio de workflow deben terminar.
 
-## Estado de automatizaciones al revisar
+## Estado de automatizaciones y bloqueos
 
-- GitHub Actions de pruebas de Python en el último commit de main: correcto.
-- Comprobaciones de calidad del último commit de main: en ejecución durante esta revisión; volver a comprobar antes de publicar una versión.
-- Compilación Android desde el archivo de fuentes integrado: en ejecución; todavía no declarar APK validado hasta que terminen compilación, pruebas, inspección del APK y carga del artefacto.
-- Despliegue web a GitHub Pages: falló en `Configure GitHub Pages` porque el repositorio aún no tiene un sitio Pages habilitado/configurado. La sintaxis de `web/app.js` sí pasó. Esto es una configuración del repositorio, no un error de sintaxis de la web.
+- **Python:** pruebas correctas en el último commit validado.
+- **Calidad:** comprobaciones correctas en el último commit validado; el commit más reciente ajusta filtros del workflow y tiene checks nuevos pendientes.
+- **Android:** la compilación de `mily.zip` está ejecutándose en GitHub Actions. Aún no declarar APK validado hasta que terminen build, pruebas unitarias, inspección del APK y carga del artefacto.
+- **Web / GitHub Pages:** el despliegue falló en `Configure GitHub Pages` porque el repositorio todavía no tiene un sitio Pages habilitado/configurado. La sintaxis de `web/app.js` pasó. El workflow no puede activar Pages por sí solo con la configuración actual.
+- **Backend:** código versionado, pero todavía no desplegado en un proveedor externo. No se ha comprobado una conversación real contra un backend público.
 
-## Seguridad y despliegue pendientes
+## Siguientes pasos necesarios
 
-1. Habilitar GitHub Pages desde Settings → Pages → Build and deployment → Source: GitHub Actions. La automatización no pudo activar Pages por sí sola.
-2. Desplegar `backend/mily-openai` en un proveedor externo con HTTPS y configurar como secretos `OPENAI_API_KEY` y `MILY_API_TOKEN`; configurar `MILY_ALLOWED_ORIGINS` para el dominio publicado.
-3. Probar `GET /health` y una conversación real con credenciales de prueba, sin publicar secretos en el repositorio ni en el cliente.
-4. Confirmar que los clientes web y Android envían la cabecera Authorization cuando el token está habilitado. No incrustar `OPENAI_API_KEY` en el APK.
-5. Esperar y revisar el workflow Android: build, pruebas, verificación de integridad y artefactos. Después probar instalación y conversación básica en un dispositivo o emulador.
-6. Verificar que los módulos Python se conectan en el runtime real y que las herramientas requieren permisos explícitos antes de ejecutar acciones con efectos.
-7. Hacer una comprobación final de configuración, secretos, permisos, costes y modo sin conexión.
+1. Habilitar GitHub Pages desde Settings → Pages → Build and deployment → Source: GitHub Actions.
+2. Desplegar `backend/mily-openai` en un proveedor autorizado con HTTPS y configurar como secretos `OPENAI_API_KEY` y `MILY_API_TOKEN`; configurar `MILY_ALLOWED_ORIGINS` con el origen web publicado.
+3. Probar `GET /health` y una conversación real; comprobar también que una llamada sin token a una ruta protegida devuelva `401`.
+4. Confirmar que web y Android envían `Authorization` cuando el token está habilitado. Nunca incrustar `OPENAI_API_KEY` en el frontend ni en el APK.
+5. Esperar el workflow Android, descargar los artefactos y revisar APK, pruebas e integridad; después probar instalación y conversación básica en un dispositivo o emulador.
+6. Validar la integración entre módulos Python y runtime real de MILY, manteniendo permisos explícitos antes de ejecutar acciones con efectos.
+7. Hacer una revisión final de configuración, secretos, permisos, costes y modo sin conexión.
 
 ## Criterio de finalización
 
-MILY sigue en desarrollo. No declararla lista para producción ni afirmar que la web está publicada hasta confirmar Pages, el backend desplegado y una conversación real. No declarar el APK validado hasta que el workflow Android termine correctamente, el APK pase sus verificaciones y se confirme una instalación/prueba básica.
+MILY sigue en desarrollo. No declarar la web publicada hasta confirmar GitHub Pages, ni declarar producción lista hasta desplegar y probar el backend. No declarar el APK validado hasta que el workflow Android termine correctamente y se verifique la instalación/prueba básica.
