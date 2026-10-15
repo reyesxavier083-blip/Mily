@@ -140,6 +140,8 @@
     const text = raw.trim();
     if (!text || state.busy) return;
     state.messages.push({ role: "user", content: text });
+    state.userCount += 1;
+    updateChart();
     addMessage("user", text);
     ui.input.value = "";
     resizeInput();
@@ -165,6 +167,8 @@
       const answer = typeof data.outputText === "string" ? data.outputText : (typeof data.text === "string" ? data.text : "");
       if (!answer.trim()) throw new Error("El servidor respondió, pero no devolvió texto.");
       state.messages.push({ role: "assistant", content: answer });
+      state.assistantCount += 1;
+      updateChart();
       addMessage("assistant", answer);
       setConnection(true, "Servidor disponible", typeof data.route === "string" ? data.route : "Respuesta recibida");
     } catch (error) {
