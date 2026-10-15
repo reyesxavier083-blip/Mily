@@ -10,7 +10,7 @@ const app = express();
 app.disable("x-powered-by");
 app.use(express.json({ limit: "512kb" }));
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024, files: 1 } });
-const port = Number(process.env.MILY_PORT || 8080);
+const port = Number(process.env.PORT || process.env.MILY_PORT || 8080);
 const defaultModel = process.env.MILY_DEFAULT_MODEL || "gpt-6-astra";
 const vectorStoreId = () => process.env.MILY_VECTOR_STORE_ID?.trim() || "";
 const apiKey = process.env.OPENAI_API_KEY?.trim() || "";
