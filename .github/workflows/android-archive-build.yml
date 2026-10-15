@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: ["main", "mily/android-build-check"]
-    paths-ignore:
+    paths:
       - "mily.zip"
+      - ".github/workflows/android-archive-build.yml"
   pull_request:
     paths:
       - "mily.zip"
@@ -13,6 +14,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: "mily-android-archive-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   assemble-debug:
