@@ -321,6 +321,19 @@ class RegistryPersistenceTests(unittest.TestCase):
             self.assertEqual(link.status, CapabilityStatus.FULL)
             self.assertEqual(reloaded.registry.discovered_app("com.whatsapp").label, "WhatsApp")
 
+    def test_connectors_and_plans_survive_reload(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "apps.json"
+            engine = AppIntegrationEngine(registry=AppRegistry(persist_path=path))
+            engine.sync_discovery([DiscoveredApp("com.whatsapp", "WhatsApp", "2.24.1", 1)])
+            engine.register_connector(whatsapp())
+            engine.link("com.whatsapp", granted_permissions=["android.intent.action.SEND"])
+
+            reloaded = AppIntegrationEngine(registry=AppRegistry(persist_path=path))
+            self.assertEqual([manifest.id for manifest in reloaded.registry.manifests()], ["whatsapp.public"])
+            plan = reloaded.resolve("Abre WhatsApp")
+            self.assertEqual(plan.steps[0].package_name, "com.whatsapp")
+
     def test_uninstalled_app_disables_link(self) -> None:
         engine = build_engine()
         engine.link("com.whatsapp", granted_permissions=["android.intent.action.SEND"])

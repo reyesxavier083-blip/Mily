@@ -182,9 +182,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.middleware("http")
     async def guard(request: Request, call_next):
         path = request.url.path
-        origin = request.headers.get("origin", "")
-        host = request.headers.get("host", "")
-        same_origin = bool(origin) and origin.split("://")[-1].rstrip("/") == host.rstrip("/")
+        origin = request.headers.get("origin", "").rstrip("/")
+        host = request.headers.get("host", "").rstrip("/")
+        forwarded = request.headers.get("x-forwarded-host", "").split(",")[0].strip().rstrip("/")
+        origin_host = origin.split("://")[-1] if origin else ""
+        # Same-origin (including reverse proxies that preserve the public host in
+        # X-Forwarded-Host) needs no CORS, so browser requests from the served app
+        # work while foreign origins are still rejected.
+        same_origin = bool(origin_host) and origin_host in {host, forwarded}
 
         if origin and origin.rstrip("/") not in config.allowed_origins and not same_origin:
             return JSONResponse({"detail": "Origen no permitido."}, status_code=403)

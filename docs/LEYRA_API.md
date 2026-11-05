@@ -143,9 +143,9 @@ del hosting. Detrás de un proxy, uvicorn se inicia con `proxy_headers=True`
 ## Pruebas
 
 ```bash
-python -m unittest discover -s tests -v                        # motores (134)
+python -m unittest discover -s tests -v                        # motores (135)
 PYTHONPATH=.:backend/leyra-api python -m unittest discover \
-  -s backend/leyra-api/tests -v                                # API (33)
+  -s backend/leyra-api/tests -v                                # API (37)
 node --check web/app.js
 ```
 

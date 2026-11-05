@@ -238,6 +238,43 @@ class ConnectorManifest:
         }
 
 
+def manifest_from_dict(raw: Mapping[str, Any]) -> ConnectorManifest:
+    """Rebuild a validated manifest from persisted/JSON data."""
+    actions = tuple(
+        ConnectorAction(
+            id=str(item.get("id", "")),
+            label=str(item.get("label", "")),
+            kind=ActionKind(str(item.get("kind", "intent"))),
+            level=IntegrationLevel(int(item.get("level", 1))),
+            description=str(item.get("description", "")),
+            parameters=tuple(
+                ActionParameter(
+                    name=str(parameter.get("name", "")),
+                    type=ParamType(str(parameter.get("type", "string"))),
+                    description=str(parameter.get("description", "")),
+                    required=bool(parameter.get("required", True)),
+                )
+                for parameter in item.get("parameters", [])
+            ),
+            permissions=tuple(str(permission) for permission in item.get("permissions", [])),
+            destructive=bool(item.get("destructive", False)),
+        )
+        for item in raw.get("actions", [])
+    )
+    return ConnectorManifest(
+        id=str(raw.get("id", "")),
+        name=str(raw.get("name", "")),
+        package_name=str(raw.get("packageName", "")),
+        version=str(raw.get("version", "1.0")),
+        level=IntegrationLevel(int(raw.get("level", 1))),
+        actions=actions,
+        auth=AuthMethod(str(raw.get("auth", "none"))),
+        publisher=str(raw.get("publisher", ""))[:80],
+        trusted=bool(raw.get("trusted", False)),
+        notes=str(raw.get("notes", ""))[:200],
+    )
+
+
 def action_to_dict(action: ConnectorAction) -> dict[str, Any]:
     return {
         "id": action.id,

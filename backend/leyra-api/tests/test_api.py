@@ -116,6 +116,27 @@ class AuthTests(ApiTestCase):
         self.assertEqual(self.client.get("/health").status_code, 200)
 
 
+class OriginTests(ApiTestCase):
+    def test_foreign_origin_is_rejected(self) -> None:
+        response = self.client.get("/v1/tools", headers={"Origin": "https://evil.example"})
+        self.assertEqual(response.status_code, 403)
+
+    def test_same_origin_is_allowed(self) -> None:
+        response = self.client.get("/v1/tools", headers={"Origin": "http://testserver"})
+        self.assertEqual(response.status_code, 200)
+
+    def test_forwarded_host_is_trusted(self) -> None:
+        response = self.client.get("/v1/tools", headers={
+            "Origin": "https://8000-demo.e2b.app",
+            "X-Forwarded-Host": "8000-demo.e2b.app",
+        })
+        self.assertEqual(response.status_code, 200)
+
+    def test_preflight_returns_204(self) -> None:
+        response = self.client.options("/v1/chat", headers={"Origin": "http://testserver"})
+        self.assertEqual(response.status_code, 204)
+
+
 class ChatTests(ApiTestCase):
     def test_chat_without_provider_is_503(self) -> None:
         with patch.dict(os.environ, {"OPENAI_API_KEY": ""}):

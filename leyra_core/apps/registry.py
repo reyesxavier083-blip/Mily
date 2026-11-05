@@ -18,6 +18,7 @@ from .models import (
     IntegrationError,
     IntegrationLevel,
     LinkedApp,
+    manifest_from_dict,
 )
 
 
@@ -192,6 +193,7 @@ class AppRegistry:
     # -- persistence -------------------------------------------------------
     def export_state(self) -> dict[str, Any]:
         return {
+            "connectors": [manifest.to_dict() for manifest in self._manifests.values()],
             "discovered": [
                 {"packageName": a.package_name, "label": a.label,
                  "versionName": a.version_name, "versionCode": a.version_code}
@@ -214,6 +216,12 @@ class AppRegistry:
             data = json.loads(self._path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             return
+        for item in data.get("connectors", []):
+            try:
+                manifest = manifest_from_dict(item)
+            except (IntegrationError, TypeError, ValueError):
+                continue
+            self._manifests[manifest.package_name] = manifest
         for item in data.get("discovered", []):
             try:
                 app = DiscoveredApp(

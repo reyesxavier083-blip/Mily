@@ -6,9 +6,9 @@
 
 **Probado automáticamente**
 
-- 134 pruebas de motores (`tests/`): integración de apps, herramientas, router
+- 135 pruebas de motores (`tests/`): integración de apps, herramientas, router
   multimodelo, memoria SQLite, voz y diagnóstico. Todas en verde.
-- 33 pruebas de API (`backend/leyra-api/tests/`): salud, autenticación, CORS implícito,
+- 37 pruebas de API (`backend/leyra-api/tests/`): salud, autenticación, CORS implícito,
   chat con proveedor falso, bucle real de herramientas, herramientas, integraciones
   Android, memoria, conversaciones, voz y archivos. Todas en verde.
 - `node --check web/app.js` correcto.

@@ -237,7 +237,7 @@ y aplicación inmediata mediante atributos `data-*` en `<html>`.
 
 ## 16. Calidad
 
-- 134 pruebas de Python (motores) + 33 de API = **167 pruebas** en verde.
+- 135 pruebas de Python (motores) + 33 de API = **172 pruebas** en verde.
 - `python -m compileall`, `node --check`, pruebas de integración con proveedor falso
   (sin red), pruebas de seguridad de herramientas (bloqueo de ejecución arbitraria).
 - Reglas aplicadas: errores centralizados y sanitizados, logs sin credenciales,

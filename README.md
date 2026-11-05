@@ -87,9 +87,9 @@ docs/LEYRA_API.md                      Referencia del API y despliegue
 ## Pruebas
 
 ```bash
-python -m unittest discover -s tests -v                       # 134 pruebas de motores
+python -m unittest discover -s tests -v                       # 135 pruebas de motores
 PYTHONPATH=.:backend/leyra-api \
-  python -m unittest discover -s backend/leyra-api/tests -v   # 33 pruebas de API
+  python -m unittest discover -s backend/leyra-api/tests -v   # 37 pruebas de API
 node --check web/app.js
 ```
 
