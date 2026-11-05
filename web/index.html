@@ -1,91 +1,475 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="dark" data-accent="electric" data-motion="full" data-glass="on" data-density="comfortable">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#07111f">
-  <meta name="description" content="Interfaz web de MILY, asistente de IA modular.">
-  <title>MILY — Asistente de IA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07111F">
+  <meta name="description" content="LEYRA IA: asistente multimodal con voz, herramientas reales, agentes e integración de aplicaciones Android.">
+  <title>LEYRA IA · Centro de inteligencia</title>
   <link rel="stylesheet" href="./styles.css">
   <script src="./app.js" defer></script>
 </head>
 <body>
-  <div class="ambient ambient-one" aria-hidden="true"></div>
-  <div class="ambient ambient-two" aria-hidden="true"></div>
-  <main class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="./" aria-label="MILY inicio">
-        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span><strong>MILY</strong><small>INTELLIGENCE CORE</small></span>
-      </a>
-      <button class="new-chat" id="new-chat" type="button"><span aria-hidden="true">＋</span> Nueva conversación</button>
-      <div class="sidebar-section">
-        <p class="eyebrow">SISTEMA</p>
-        <div class="system-card">
-          <span class="status-dot" id="status-dot"></span>
-          <div><strong id="connection-label">Sin verificar</strong><small id="connection-detail">Comprueba el servidor</small></div>
-        </div>
+  <!-- Ambient layers ------------------------------------------------------->
+  <div class="backdrop" aria-hidden="true">
+    <div class="aurora aurora-a"></div>
+    <div class="aurora aurora-b"></div>
+    <div class="aurora aurora-c"></div>
+    <canvas id="particles"></canvas>
+    <div class="mesh"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.6-4.4A8 8 0 1 1 21 12Z"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v5l3 2"/></symbol>
+    <symbol id="i-project" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></symbol>
+    <symbol id="i-tools" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0 5 5L20 21l-3-1-8.5-8.5a4 4 0 0 1 5-5Z"/><path d="M6 3l3 3-3 3-3-3Z"/></symbol>
+    <symbol id="i-agents" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/><path d="M18 5.5 19.5 7 21 5.5"/></symbol>
+    <symbol id="i-apps" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></symbol>
+    <symbol id="i-tasks" viewBox="0 0 24 24"><path d="M4 6h3l0 0"/><path d="M4 12h3"/><path d="M4 18h3"/><path d="M10 6h10"/><path d="M10 12h10"/><path d="M10 18h10"/></symbol>
+    <symbol id="i-diag" viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12 21 4l-8 17-2.2-6.8Z"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/></symbol>
+    <symbol id="i-attach" viewBox="0 0 24 24"><path d="M20 12 12 20a5 5 0 0 1-7-7l8-8a3.5 3.5 0 0 1 5 5l-8 8a2 2 0 0 1-3-3l7-7"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="m4 18 5-5 3.5 3.5L16 13l4 5"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 3v18"/><path d="M16 7v10"/><path d="M20 10v4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8Z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5H6a2 2 0 0 0-2 2v9"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7Z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10"/><path d="m8 11 4 4 4-4"/><path d="M5 20h14"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5"/><path d="M15 3v5"/><path d="M6 8h12v3a6 6 0 0 1-6 6 6 6 0 0 1-6-6Z"/><path d="M12 17v4"/></symbol>
+    <symbol id="i-broadcast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4"/><path d="M16.2 16.2a6 6 0 0 0 0-8.4"/><path d="M4.9 4.9a10 10 0 0 0 0 14.2"/><path d="M19.1 19.1a10 10 0 0 0 0-14.2"/></symbol>
+  </svg>
+
+  <div class="app" id="app">
+    <!-- Sidebar ----------------------------------------------------------->
+    <aside class="rail" id="rail" aria-label="Navegación de LEYRA IA">
+      <div class="rail-head">
+        <a class="brand" href="#chat" aria-label="LEYRA IA, inicio">
+          <span class="brand-core" data-state="idle" aria-hidden="true"><i></i><i></i><b></b></span>
+          <span class="brand-type">
+            <strong>LEYRA<span>IA</span></strong>
+            <small>INTELLIGENCE&nbsp;CORE</small>
+          </span>
+        </a>
+        <button class="rail-close icon-btn" id="rail-close" type="button" aria-label="Cerrar menú">
+          <svg><use href="#i-x"/></svg>
+        </button>
       </div>
-      <div class="sidebar-bottom">
-        <button class="settings-button" id="open-settings" type="button" aria-haspopup="dialog">⚙ <span>Conexión y ajustes</span></button>
-        <p class="version">MILY WEB · PREVIEW</p>
+
+      <button class="new-chat" id="new-chat" type="button">
+        <svg><use href="#i-plus"/></svg><span>Nueva conversación</span><kbd>⌘K</kbd>
+      </button>
+
+      <nav class="rail-nav" id="rail-nav" aria-label="Secciones">
+        <a class="rail-link is-active" href="#chat" data-route="chat"><svg><use href="#i-chat"/></svg><span>Conversación</span></a>
+        <a class="rail-link" href="#history" data-route="history"><svg><use href="#i-history"/></svg><span>Historial</span></a>
+        <a class="rail-link" href="#library" data-route="library"><svg><use href="#i-files"/></svg><span>Biblioteca</span></a>
+        <a class="rail-link" href="#tools" data-route="tools"><svg><use href="#i-tools"/></svg><span>Herramientas</span><em id="tools-count" class="badge">—</em></a>
+        <a class="rail-link" href="#agents" data-route="agents"><svg><use href="#i-agents"/></svg><span>Agentes</span></a>
+        <a class="rail-link" href="#apps" data-route="apps"><svg><use href="#i-apps"/></svg><span>Aplicaciones vinculadas</span><em id="apps-count" class="badge">—</em></a>
+        <a class="rail-link" href="#tasks" data-route="tasks"><svg><use href="#i-tasks"/></svg><span>Tareas</span></a>
+        <a class="rail-link" href="#diagnostics" data-route="diagnostics"><svg><use href="#i-diag"/></svg><span>Diagnóstico</span><em id="diag-dot" class="badge dot-badge">—</em></a>
+        <a class="rail-link" href="#settings" data-route="settings"><svg><use href="#i-settings"/></svg><span>Configuración</span></a>
+      </nav>
+
+      <div class="rail-section" id="pinned-section" hidden>
+        <p class="eyebrow">FIJADAS</p>
+        <div class="rail-pinned" id="rail-pinned"></div>
+      </div>
+
+      <div class="rail-foot">
+        <button class="status-card" id="status-card" type="button" aria-live="polite">
+          <span class="status-dot" id="status-dot"></span>
+          <span class="status-text">
+            <strong id="status-label">Sin verificar</strong>
+            <small id="status-detail">Comprobando el servidor…</small>
+          </span>
+          <svg class="chev"><use href="#i-chevron"/></svg>
+        </button>
+        <div class="profile">
+          <span class="avatar" aria-hidden="true">L</span>
+          <span><strong>Cuenta local</strong><small>Perfil no configurado</small></span>
+          <button class="icon-btn" id="open-profile" type="button" aria-label="Perfil"><svg><use href="#i-settings"/></svg></button>
+        </div>
       </div>
     </aside>
 
-    <section class="workspace" aria-label="Chat con MILY">
+    <!-- Main -------------------------------------------------------------->
+    <main class="main">
       <header class="topbar">
-        <div class="mobile-brand"><span class="mini-orb" aria-hidden="true"></span><strong>MILY</strong></div>
-        <div class="topbar-status"><span class="status-dot" id="top-status-dot"></span><span id="top-status">Servidor no verificado</span></div>
-        <button class="icon-button" id="top-settings" type="button" aria-label="Abrir ajustes">⚙</button>
+        <button class="icon-btn rail-toggle" id="rail-toggle" type="button" aria-label="Abrir menú"><svg><use href="#i-chat"/></svg></button>
+        <div class="titles">
+          <p class="eyebrow" id="view-eyebrow">CENTRO DE CONTROL</p>
+          <h1 id="view-title">Conversación</h1>
+        </div>
+        <div class="topbar-actions">
+          <div class="state-pill" id="state-pill" data-state="idle" role="status">
+            <span class="pulse"></span><span id="state-label">En reposo</span>
+          </div>
+          <button class="ghost-btn" id="btn-voice-mode" type="button" title="Modo conversación por voz">
+            <svg><use href="#i-wave"/></svg><span class="hide-sm">Voz</span>
+          </button>
+          <button class="ghost-btn" id="btn-theme" type="button" aria-label="Cambiar tema">
+            <svg><use href="#i-spark"/></svg>
+          </button>
+          <button class="ghost-btn" id="btn-settings" type="button" aria-label="Abrir configuración">
+            <svg><use href="#i-settings"/></svg>
+          </button>
+        </div>
       </header>
 
-      <section class="conversation" id="conversation" aria-live="polite" aria-label="Mensajes">
-        <div class="welcome" id="welcome">
-          <div class="hero-orb" aria-hidden="true"><div class="orb-core"></div><div class="orb-ring ring-a"></div><div class="orb-ring ring-b"></div><div class="orb-particle particle-a"></div><div class="orb-particle particle-b"></div></div>
-          <p class="eyebrow">TU ASISTENTE, EN UN SOLO LUGAR</p>
-          <h1>Hola. Soy <span>MILY.</span></h1>
-          <p class="welcome-copy">Tu espacio de trabajo inteligente. Conecta el servidor para empezar una conversación.</p>
-          <div class="suggestions">
-            <button type="button" data-prompt="Ayúdame a organizar mis tareas de hoy.">Organizar mis tareas <span>↗</span></button>
-            <button type="button" data-prompt="Explícame cómo puedes ayudarme con mi proyecto.">Explorar capacidades <span>↗</span></button>
-            <button type="button" data-prompt="Crea un plan paso a paso para desarrollar una aplicación web.">Crear un plan <span>↗</span></button>
+      <div class="views" id="views">
+        <!-- Chat ---------------------------------------------------------->
+        <section class="view is-active" data-view="chat">
+          <div class="conversation" id="conversation">
+            <div class="hero" id="hero">
+              <div class="hero-core" data-state="idle" id="hero-core">
+                <span class="core-halo"></span>
+                <span class="core-ring ring-1"></span>
+                <span class="core-ring ring-2"></span>
+                <span class="core-ring ring-3"></span>
+                <span class="core-nucleus"><i></i></span>
+                <span class="core-spark s1"></span><span class="core-spark s2"></span><span class="core-spark s3"></span>
+              </div>
+              <p class="eyebrow">CENTRO DE INTELIGENCIA MULTIMODAL</p>
+              <h2>Hola, soy <span class="grad-text">LEYRA</span>.</h2>
+              <p class="hero-copy" id="hero-copy">
+                Pienso, escucho, veo y actúo con herramientas reales. Vincula tus aplicaciones
+                Android para abrirlas, compartir contenido y usar sus funciones públicas.
+              </p>
+              <div class="suggestions" id="suggestions">
+                <button type="button" data-prompt="Explícame qué puedes hacer y qué necesitas configurar para rendir al máximo.">
+                  <svg><use href="#i-spark"/></svg><span><strong>Explorar capacidades</strong><small>Qué puedo hacer y qué falta configurar</small></span>
+                </button>
+                <button type="button" data-prompt="Calcula cuánto es 18% de 2.450 y explícame el resultado.">
+                  <svg><use href="#i-tools"/></svg><span><strong>Usar una herramienta</strong><small>Cálculo con resultado verificable</small></span>
+                </button>
+                <button type="button" data-prompt="¿Qué aplicaciones Android pueden compartir un enlace y cómo se vinculan con LEYRA?">
+                  <svg><use href="#i-apps"/></svg><span><strong>Integración Android</strong><small>Aplicaciones, permisos y límites reales</small></span>
+                </button>
+                <button type="button" data-prompt="Actúa como planificador: organiza mi semana en tareas concretas y medibles.">
+                  <svg><use href="#i-tasks"/></svg><span><strong>Planificar</strong><small>Agente de planificación</small></span>
+                </button>
+              </div>
+            </div>
+            <div class="messages" id="messages" aria-live="polite" aria-relevant="additions text"></div>
           </div>
-        </div>
-        <section class="activity-panel" aria-labelledby="activity-title">
-          <div class="activity-heading"><div><p class="eyebrow">DIAGNÓSTICO EN VIVO</p><h2 id="activity-title">Actividad de MILY</h2></div><span class="activity-live"><i></i> SESIÓN LOCAL</span></div>
-          <div class="activity-chart" role="img" aria-label="Actividad de la sesión: mensajes, respuestas y estado del servidor">
-            <div class="chart-column"><span class="chart-value" id="chart-user-value">0</span><div class="chart-track"><div class="chart-bar user-bar" id="chart-user-bar"></div></div><span class="chart-label">Mensajes</span></div>
-            <div class="chart-column"><span class="chart-value" id="chart-ai-value">0</span><div class="chart-track"><div class="chart-bar ai-bar" id="chart-ai-bar"></div></div><span class="chart-label">Respuestas</span></div>
-            <div class="chart-column"><span class="chart-value" id="chart-api-value">—</span><div class="chart-track"><div class="chart-bar api-bar" id="chart-api-bar"></div></div><span class="chart-label">Servidor</span></div>
+
+          <div class="composer-wrap">
+            <form class="composer" id="composer" autocomplete="off">
+              <div class="attachments" id="attachments" hidden></div>
+              <div class="composer-field">
+                <label class="sr-only" for="message-input">Escribe tu mensaje para LEYRA</label>
+                <textarea id="message-input" rows="1" placeholder="Pide, pregunta o dicta una instrucción…" maxlength="20000"></textarea>
+                <div class="composer-meta">
+                  <span id="char-count">0 / 20000</span>
+                  <span class="composer-hint-inline" id="composer-hint">Ctrl + Enter para enviar</span>
+                </div>
+              </div>
+              <div class="composer-bar">
+                <div class="composer-left">
+                  <button class="chip-btn" type="button" id="btn-attach" title="Adjuntar archivo">
+                    <svg><use href="#i-attach"/></svg><span class="hide-sm">Archivo</span>
+                  </button>
+                  <input type="file" id="file-input" multiple hidden>
+                  <input type="file" id="image-input" accept="image/*" multiple hidden>
+                  <button class="chip-btn" type="button" id="btn-image" title="Adjuntar imagen (visión)">
+                    <svg><use href="#i-image"/></svg><span class="hide-sm">Imagen</span>
+                  </button>
+                  <button class="chip-btn" type="button" id="btn-tools" aria-pressed="true" title="Permitir uso de herramientas">
+                    <svg><use href="#i-tools"/></svg><span class="hide-sm">Herramientas</span>
+                  </button>
+                  <button class="chip-btn" type="button" id="btn-reasoning" aria-pressed="false" title="Modo razonamiento">
+                    <svg><use href="#i-spark"/></svg><span class="hide-sm">Razonar</span>
+                  </button>
+                </div>
+                <div class="composer-right">
+                  <div class="select-wrap">
+                    <label class="sr-only" for="model-select">Modelo</label>
+                    <select id="model-select"><option value="">Modelo automático</option></select>
+                  </div>
+                  <div class="select-wrap">
+                    <label class="sr-only" for="agent-select">Agente</label>
+                    <select id="agent-select"><option value="">Agente automático</option></select>
+                  </div>
+                  <button class="icon-btn mic-btn" type="button" id="btn-mic" title="Dictar (voz a texto)" aria-pressed="false">
+                    <svg><use href="#i-mic"/></svg>
+                  </button>
+                  <button class="send-btn" type="submit" id="btn-send" title="Enviar mensaje">
+                    <svg class="send-icon"><use href="#i-send"/></svg>
+                    <svg class="stop-icon"><use href="#i-stop"/></svg>
+                  </button>
+                </div>
+              </div>
+            </form>
+            <p class="foot-note">LEYRA puede cometer errores. Verifica la información importante y revisa los permisos concedidos.</p>
           </div>
-          <p class="chart-note">Métricas reales de esta sesión y de la última comprobación de conexión; no son estadísticas globales.</p>
         </section>
-        <div class="messages" id="messages"></div>
-      </section>
 
-      <form class="composer-wrap" id="chat-form">
-        <label class="composer" for="message-input">
-          <textarea id="message-input" rows="1" maxlength="12000" placeholder="Escribe un mensaje a MILY…" aria-label="Mensaje para MILY"></textarea>
-          <button class="send-button" id="send-button" type="submit" aria-label="Enviar mensaje"><span aria-hidden="true">↑</span></button>
-        </label>
-        <div class="composer-footer"><span>Las respuestas dependen del servidor conectado.</span><span id="char-count">0 / 12000</span></div>
-      </form>
-    </section>
-  </main>
+        <!-- History ------------------------------------------------------->
+        <section class="view" data-view="history">
+          <div class="panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">MEMORIA DE CONVERSACIONES</p><h2>Historial</h2></div>
+              <div class="search-field">
+                <svg><use href="#i-search"/></svg>
+                <input type="search" id="history-search" placeholder="Buscar por título o contenido" aria-label="Buscar conversaciones">
+              </div>
+            </div>
+            <div class="list" id="history-list"><p class="empty">Cargando conversaciones…</p></div>
+          </div>
+        </section>
 
-  <dialog id="settings-dialog" class="settings-dialog">
-    <form id="settings-form" method="dialog">
-      <div class="dialog-heading"><div><p class="eyebrow">CONFIGURACIÓN</p><h2>Conexión de MILY</h2></div><button class="icon-button" id="close-settings" type="button" aria-label="Cerrar">×</button></div>
-      <p class="dialog-copy">Indica la dirección base de tu backend. La clave del proveedor de IA debe permanecer en el servidor, nunca en este navegador.</p>
-      <label for="api-base">URL base del backend</label>
-      <input id="api-base" name="api-base" type="url" placeholder="https://tu-servidor.example" autocomplete="url">
-      <label for="api-token">Token de cliente (si el servidor lo exige)</label>
-      <input id="api-token" name="api-token" type="password" placeholder="Token de MILY" autocomplete="off">
-      <p class="field-hint">Se usa <code>/health</code> para comprobar el estado y <code>/v1/mily/responses</code> para conversar. No introduzcas aquí la clave de OpenAI.</p>
-      <div class="dialog-actions"><button class="secondary-button" id="test-connection" type="button">Probar conexión</button><button class="primary-button" type="submit">Guardar ajustes</button></div>
-      <p class="settings-feedback" id="settings-feedback" role="status"></p>
+        <!-- Projects ------------------------------------------------------>
+        <section class="view" data-view="projects">
+          <div class="panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">ESPACIOS DE TRABAJO</p><h2>Proyectos</h2></div>
+              <button class="primary-btn" id="new-project" type="button"><svg><use href="#i-plus"/></svg>Nuevo proyecto</button>
+            </div>
+            <p class="panel-note">Los proyectos agrupan conversaciones bajo un mismo contexto. Se guardan en la base de datos del servidor.</p>
+            <div class="grid" id="projects-grid"></div>
+          </div>
+        </section>
+
+        <!-- Library ------------------------------------------------------->
+        <section class="view" data-view="library">
+          <div class="panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">ARCHIVOS Y DOCUMENTOS</p><h2>Biblioteca</h2></div>
+              <button class="primary-btn" id="library-upload" type="button"><svg><use href="#i-attach"/></svg>Subir archivo</button>
+            </div>
+            <p class="panel-note">Los archivos se guardan en el servidor de LEYRA. El texto extraíble se usa como contexto del chat; los PDF requieren <code>pypdf</code>.</p>
+            <div class="list" id="library-list"><p class="empty">Cargando archivos…</p></div>
+          </div>
+        </section>
+
+        <!-- Tools --------------------------------------------------------->
+        <section class="view" data-view="tools">
+          <div class="panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">TOOLS ENGINE</p><h2>Herramientas</h2></div>
+              <button class="ghost-btn" id="tools-refresh" type="button"><svg><use href="#i-refresh"/></svg>Actualizar</button>
+            </div>
+            <p class="panel-note">Cada herramienta ejecuta código real en el servidor. Las que requieren un proveedor externo se muestran como no disponibles en lugar de simular resultados.</p>
+            <div class="tools-layout">
+              <div class="list" id="tools-list"></div>
+              <div class="tool-runner glass" id="tool-runner">
+                <p class="empty">Selecciona una herramienta para ejecutarla.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Agents -------------------------------------------------------->
+        <section class="view" data-view="agents">
+          <div class="panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">RAZONAMIENTO ESPECIALIZADO</p><h2>Agentes</h2></div>
+            </div>
+            <p class="panel-note">Los agentes son perfiles de razonamiento que ajustan las instrucciones del sistema. No son procesos autónomos: cada respuesta la produce el modelo que tengas configurado.</p>
+            <div class="grid" id="agents-grid"></div>
+          </div>
+        </section>
+
+        <!-- Apps ---------------------------------------------------------->
+        <section class="view" data-view="apps">
+          <div class="panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">ANDROID APP INTEGRATION ENGINE</p><h2>Aplicaciones vinculadas</h2></div>
+              <div class="head-actions">
+                <button class="ghost-btn" id="apps-refresh" type="button"><svg><use href="#i-refresh"/></svg>Actualizar</button>
+                <button class="ghost-btn" id="apps-import" type="button"><svg><use href="#i-plug"/></svg>Importar conector</button>
+              </div>
+            </div>
+            <div class="banner" id="bridge-banner" hidden></div>
+            <div class="apps-layout">
+              <div class="apps-main">
+                <div class="tabs" role="tablist" id="apps-tabs">
+                  <button class="tab is-active" data-tab="catalog" role="tab">Catálogo</button>
+                  <button class="tab" data-tab="linked" role="tab">Vinculadas</button>
+                  <button class="tab" data-tab="policy" role="tab">Niveles y permisos</button>
+                  <button class="tab" data-tab="history" role="tab">Historial</button>
+                </div>
+                <div class="tab-panels">
+                  <div class="tab-panel is-active" data-panel="catalog">
+                    <div class="search-field wide">
+                      <svg><use href="#i-search"/></svg>
+                      <input type="search" id="apps-search" placeholder="Buscar aplicación instalada o conector" aria-label="Buscar aplicaciones">
+                    </div>
+                    <div class="list" id="apps-catalog"><p class="empty">Cargando aplicaciones…</p></div>
+                  </div>
+                  <div class="tab-panel" data-panel="linked">
+                    <div class="list" id="apps-linked"><p class="empty">No hay aplicaciones vinculadas.</p></div>
+                  </div>
+                  <div class="tab-panel" data-panel="policy">
+                    <div id="apps-policy"></div>
+                  </div>
+                  <div class="tab-panel" data-panel="history">
+                    <div class="list" id="apps-history"><p class="empty">Sin actividad registrada.</p></div>
+                  </div>
+                </div>
+              </div>
+              <aside class="apps-side glass">
+                <h3>Probar una instrucción</h3>
+                <p class="panel-note">LEYRA resuelve la frase con las capacidades declaradas por los conectores y nunca ejecuta fuera de la política activa.</p>
+                <label class="sr-only" for="integration-instruction">Instrucción de integración</label>
+                <textarea id="integration-instruction" rows="3" placeholder="Ej.: abre WhatsApp, comparte el texto «Hola» con Gmail, ¿qué apps pueden compartir un enlace?"></textarea>
+                <div class="row">
+                  <button class="primary-btn" id="integration-resolve" type="button">Planificar</button>
+                  <button class="ghost-btn" id="integration-execute" type="button">Ejecutar</button>
+                </div>
+                <div class="result-box" id="integration-result"><p class="empty">El plan aparecerá aquí.</p></div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tasks --------------------------------------------------------->
+        <section class="view" data-view="tasks">
+          <div class="panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">FLUJOS DE TRABAJO</p><h2>Tareas</h2></div>
+              <span class="panel-note inline">Se guardan en este navegador.</span>
+            </div>
+            <form class="task-form" id="task-form">
+              <input type="text" id="task-title" placeholder="Nueva tarea…" maxlength="140" aria-label="Título de la tarea">
+              <select id="task-priority" aria-label="Prioridad">
+                <option value="normal">Normal</option>
+                <option value="alta">Alta</option>
+                <option value="baja">Baja</option>
+              </select>
+              <button class="primary-btn" type="submit"><svg><use href="#i-plus"/></svg>Añadir</button>
+            </form>
+            <div class="list" id="tasks-list"></div>
+          </div>
+        </section>
+
+        <!-- Diagnostics --------------------------------------------------->
+        <section class="view" data-view="diagnostics">
+          <div class="panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">CENTRO DE DIAGNÓSTICO</p><h2>Estado real del sistema</h2></div>
+              <button class="ghost-btn" id="diagnostics-refresh" type="button"><svg><use href="#i-refresh"/></svg>Comprobar</button>
+            </div>
+            <div class="diag-summary" id="diag-summary"><p class="empty">Sin comprobaciones todavía.</p></div>
+            <div class="grid" id="diag-grid"></div>
+          </div>
+        </section>
+
+        <!-- Settings ------------------------------------------------------>
+        <section class="view" data-view="settings">
+          <div class="panel settings-panel">
+            <div class="panel-head"><div><p class="eyebrow">CONTROL CENTRAL</p><h2>Configuración</h2></div></div>
+            <div class="settings-grid">
+              <form class="glass form-card" id="connection-form">
+                <h3><svg><use href="#i-broadcast"/></svg>Conexión</h3>
+                <label>URL del servidor LEYRA<input type="url" id="api-base" placeholder="https://tu-servidor" autocomplete="off"></label>
+                <label>Token de acceso<input type="password" id="api-token" placeholder="Se guarda solo en este navegador" autocomplete="off"></label>
+                <div class="row"><button class="primary-btn" type="submit">Guardar y comprobar</button>
+                <button class="ghost-btn" type="button" id="connection-test">Probar</button></div>
+                <p class="form-feedback" id="connection-feedback" role="status"></p>
+              </form>
+
+              <form class="glass form-card" id="voice-form">
+                <h3><svg><use href="#i-wave"/></svg>Voz</h3>
+                <div class="two-col">
+                  <label>Nombre de la asistente<input type="text" id="voice-name" maxlength="40"></label>
+                  <label>Idioma<select id="voice-language"></select></label>
+                </div>
+                <label>Voz del dispositivo<select id="voice-select"></select></label>
+                <div class="two-col">
+                  <label>Velocidad <output id="voice-rate-out"></output><input type="range" id="voice-rate" min="0.5" max="2" step="0.05"></label>
+                  <label>Tono <output id="voice-pitch-out"></output><input type="range" id="voice-pitch" min="0" max="2" step="0.05"></label>
+                </div>
+                <label>Estilo<select id="voice-style"></select></label>
+                <div class="switches">
+                  <label class="switch"><input type="checkbox" id="voice-pauses"> Pausas expresivas</label>
+                  <label class="switch"><input type="checkbox" id="voice-autospeak"> Leer respuestas</label>
+                  <label class="switch"><input type="checkbox" id="voice-barge"> Interrumpir al hablar</label>
+                </div>
+                <div class="row"><button class="primary-btn" type="submit">Guardar voz</button>
+                <button class="ghost-btn" type="button" id="voice-test">Probar voz</button></div>
+                <p class="form-feedback" id="voice-feedback" role="status"></p>
+              </form>
+
+              <form class="glass form-card" id="appearance-form">
+                <h3><svg><use href="#i-spark"/></svg>Apariencia</h3>
+                <div class="two-col">
+                  <label>Tema<select id="pref-theme"><option value="dark">Oscuro</option><option value="space">Negro espacial</option><option value="light">Claro</option></select></label>
+                  <label>Acento<select id="pref-accent"><option value="electric">Azul eléctrico</option><option value="cyan">Cian energético</option><option value="violet">Violeta futurista</option></select></label>
+                </div>
+                <div class="two-col">
+                  <label>Intensidad de animación<select id="pref-motion"><option value="full">Completa</option><option value="reduced">Reducida</option><option value="off">Desactivada</option></select></label>
+                  <label>Cristal<select id="pref-glass"><option value="on">Activado</option><option value="off">Desactivado</option></select></label>
+                </div>
+                <label>Densidad<select id="pref-density"><option value="comfortable">Cómoda</option><option value="compact">Compacta</option></select></label>
+                <p class="form-feedback">Las preferencias visuales se aplican al instante y se guardan en este navegador.</p>
+              </form>
+
+              <div class="glass form-card">
+                <h3><svg><use href="#i-shield"/></svg>Privacidad y memoria</h3>
+                <div id="privacy-summary"><p class="empty">Cargando…</p></div>
+                <div class="row">
+                  <button class="ghost-btn" id="memory-export" type="button"><svg><use href="#i-download"/></svg>Exportar memoria</button>
+                  <button class="danger-btn" id="memory-purge" type="button">Borrar memoria</button>
+                </div>
+                <p class="form-feedback">La memoria se guarda en SQLite en el servidor. El cifrado en reposo aún no está activo; protege el volumen de datos.</p>
+              </div>
+
+              <div class="glass form-card">
+                <h3><svg><use href="#i-agents"/></svg>Modelos y proveedores</h3>
+                <div id="models-summary"><p class="empty">Cargando modelos…</p></div>
+                <p class="form-feedback">Las claves de proveedor se configuran como variables de entorno del servidor. La interfaz nunca las solicita ni las almacena.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Voice mode overlay ------------------------------------------------>
+  <div class="voice-overlay" id="voice-overlay" hidden>
+    <div class="voice-shell">
+      <button class="icon-btn voice-close" id="voice-close" type="button" aria-label="Cerrar modo voz"><svg><use href="#i-x"/></svg></button>
+      <div class="voice-core" id="voice-core" data-state="idle">
+        <span class="core-halo"></span><span class="core-ring ring-1"></span><span class="core-ring ring-2"></span><span class="core-nucleus"><i></i></span>
+      </div>
+      <p class="eyebrow" id="voice-state-label">EN REPOSO</p>
+      <p class="voice-transcript" id="voice-transcript">Pulsa el micrófono y habla. LEYRA te escuchará, responderá y se detendrá si vuelves a hablar.</p>
+      <div class="waveform" id="waveform" aria-hidden="true"></div>
+      <div class="voice-actions">
+        <button class="round-btn" id="voice-listen" type="button" aria-pressed="false"><svg><use href="#i-mic"/></svg></button>
+        <button class="round-btn subtle" id="voice-interrupt" type="button"><svg><use href="#i-stop"/></svg></button>
+      </div>
+      <p class="voice-note" id="voice-note"></p>
+    </div>
+  </div>
+
+  <!-- Settings dialog (quick) ------------------------------------------->
+  <dialog class="dialog" id="quick-settings">
+    <form method="dialog" class="dialog-inner">
+      <header><h2>Conexión rápida</h2><button class="icon-btn" value="close" aria-label="Cerrar"><svg><use href="#i-x"/></svg></button></header>
+      <p>Configura la URL del servidor LEYRA y el token si tu instancia lo exige.</p>
+      <label>URL del servidor<input type="url" id="quick-api-base" placeholder="Mismo origen (recomendado)"></label>
+      <label>Token<input type="password" id="quick-api-token" autocomplete="off"></label>
+      <footer><button class="primary-btn" value="save" id="quick-save">Guardar</button></footer>
     </form>
   </dialog>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="toast-stack" id="toasts" aria-live="polite"></div>
 </body>
 </html>

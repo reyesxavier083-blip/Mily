@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Fragmento para el AndroidManifest.xml de la app LEYRA.
+  Declara solo lo necesario para el catálogo de apertura y el despacho de intents.
+  Evita QUERY_ALL_PACKAGES: Google Play exige justificarlo y declararlo.
+-->
+<queries>
+    <!-- Aplicaciones con actividad de lanzamiento (nivel 1) -->
+    <intent>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent>
+
+    <!-- Destinos de compartir texto (nivel 2) -->
+    <intent>
+        <action android:name="android.intent.action.SEND" />
+        <data android:mimeType="text/plain" />
+    </intent>
+
+    <!-- Destinos de compartir archivos (nivel 2, FileProvider) -->
+    <intent>
+        <action android:name="android.intent.action.SEND" />
+        <data android:mimeType="*/*" />
+    </intent>
+
+    <!-- Apertura de enlaces https en aplicaciones concretas -->
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="https" />
+    </intent>
+</queries>

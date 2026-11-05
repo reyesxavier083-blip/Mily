@@ -1,62 +1,125 @@
-# MILY
+# LEYRA IA
 
-Asistente de IA modular en desarrollo. MILY se mantiene como proyecto independiente de NEXUS.
+Asistente de inteligencia artificial multimodal: interfaz de centro de control,
+voz con interrupción, herramientas que se ejecutan de verdad, memoria estructurada y
+un motor de integración con aplicaciones Android que respeta el aislamiento del
+sistema.
 
-## Módulos actuales
+> LEYRA IA sucede a la etapa MILY del proyecto. Los módulos `mily_core/` y el backend
+> Node `backend/mily-openai/` se conservan como legado compatible; el producto actual
+> está en `leyra_core/`, `backend/leyra-api/` y `web/`.
 
-- `mily_core/security.py`: valida rutas relativas y bloquea escapes del espacio de trabajo, incluidos enlaces simbólicos.
-- `mily_core/permission_manager.py`: autoriza herramientas mediante una lista de confianza y exige confirmación explícita para escritura, acciones externas y operaciones destructivas; no ejecuta herramientas ni conserva aprobaciones.
-- `mily_core/tasks.py`: máquina de estados con transiciones permitidas para tareas; no ejecuta herramientas ni concede permisos.
-- `mily_core/task_manager.py`: coordina creación, inicio, éxito, fallo y cancelación de tareas; publica eventos y registra duración sin escribir errores crudos en los logs.
-- `mily_core/event_bus.py`: bus de eventos en memoria, con aislamiento entre suscriptores y registro de resultados de despacho sin registrar los payloads.
-- `mily_core/observability.py`: logs JSON con límites de tamaño y redacción de patrones comunes de credenciales.
-- `mily_core/memory.py`: memoria temporal en proceso con categorías, procedencia, búsqueda y límite de capacidad. No guarda datos en disco.
-- `web/`: interfaz web adaptable (HTML/CSS/JavaScript) que se conecta al backend mediante `/health` y `/v1/mily/responses`.
-- `tests/`: pruebas unitarias de seguridad, tareas, memoria, eventos, observabilidad y coordinación de tareas.
-- `docs/MEJORA_ARQUITECTURA_MILY.md`: hoja de ruta técnica.
-- `docs/STATUS.md`: estado comprobado y bloqueos pendientes del proyecto.
-- `docs/WEB_ANDROID_ARQUITECTURA.md`: contrato de integración web/Android y requisitos de despliegue.
+## Qué funciona hoy
 
-## MILY Web
+- **Interfaz LEYRA** (`web/`): rediseño completo con identidad propia, núcleo
+  energético con 9 estados reales, paneles de cristal, degradados ambientales,
+  partículas eficientes y navegación adaptable. Incluye conversación con Markdown,
+  tablas, código con copia, fórmulas, adjuntos, imágenes, acciones por respuesta,
+  historial, proyectos, biblioteca, herramientas, agentes, aplicaciones vinculadas,
+  tareas, diagnóstico y configuración.
+- **Voz**: reconocimiento en vivo, síntesis configurable por voz/idioma/velocidad/tono,
+  pausas expresivas, reproducción por fragmentos, modo conversación continua y
+  *barge-in* (te calla en cuanto vuelves a hablar).
+- **Herramientas reales** (`leyra_core/tools.py`): calculadora segura, unidades y
+  temperatura, fecha/hora, estadísticas de texto, análisis de datos con histograma,
+  JSON y lectura de PDF (con `pypdf`). Búsqueda web y monedas se muestran **no
+  disponibles** hasta configurar proveedor: no se inventan resultados.
+- **IA multimodelo** (`leyra_core/models.py`): router por capacidades, proveedores
+  OpenAI/Anthropic/Google/modelo local, fallback explicable, credenciales solo en el
+  servidor y jamás expuestas al cliente.
+- **Integración Android** (`leyra_core/apps/`): descubrimiento, catálogo de
+  compatibilidad real, vinculación por niveles, permisos revocables, planificación de
+  instrucciones en lenguaje natural, confirmación de acciones externas, auditoría y
+  denegación segura. El puente Kotlin de referencia está en `android/app-integration/`.
+- **Memoria y datos** (`leyra_core/storage.py`): SQLite con conversaciones, recuerdos
+  con procedencia y deduplicación, ajustes y registro de integración.
+- **Diagnóstico** (`/v1/diagnostics`): 10 comprobaciones reales; nada se marca
+  operativo sin pasar su prueba.
 
-La interfaz inicial está en `web/index.html`. Puede abrirse para revisar el diseño, pero para conversar con el modelo necesita un backend accesible. Abre **Conexión y ajustes** e indica la URL base del servidor. La web no contiene ni solicita una clave API del proveedor.
-
-El backend Node.js está ahora en `backend/mily-openai/` e incluye Dockerfile, configuración de ejemplo, autenticación Bearer configurable, allowlist CORS, límite básico de solicitudes, Responses API, memoria temporal y File Search opcional. Consulta `backend/mily-openai/README.md` y `docs/WEB_BACKEND_DEPLOY.md`.
-
-Para producción, configura `OPENAI_API_KEY`, `MILY_API_TOKEN` y `MILY_ALLOWED_ORIGINS` como variables/secretos del hosting, habilita HTTPS y revisa el límite de costes. El backend todavía necesita ser desplegado en un proveedor externo; GitHub Pages solo publica la web estática. La app Android del archivo integrado no está expandida en este repositorio y debe enviar Authorization si se habilita el token.
-
-## Ejecutar las pruebas
-
-Requiere Python 3.10 o posterior. Desde la raíz del repositorio:
+## Arranque rápido
 
 ```bash
-python -m compileall -q mily_core tests
-python -m unittest discover -s tests -v
+python -m venv .venv
+.venv/bin/pip install -r backend/leyra-api/requirements.txt
+
+export OPENAI_API_KEY="tu-clave"      # opcional: sin clave, la app arranca en diagnóstico
+.venv/bin/python backend/leyra-api/run.py --host 0.0.0.0 --port 8000
 ```
 
-Si tienes Node.js instalado, valida también el JavaScript de la interfaz:
+Abre `http://localhost:8000`. La interfaz y el API se sirven desde el mismo proceso y
+no requieren compilación ni dependencias de Node.
+
+Guía completa del API, variables de entorno y despliegue: `docs/LEYRA_API.md`.
+
+## Estructura
+
+```
+leyra_core/                 Motores independientes y probados
+├── apps/                   ANDROID APP INTEGRATION ENGINE
+│   ├── models.py           Conectores, acciones, niveles, resultados
+│   ├── registry.py         Apps descubiertas, vínculos, historial, persistencia
+│   ├── policy.py           Niveles máximos, bloqueos, confirmaciones
+│   └── engine.py           Catálogo, resolución de instrucciones, ejecución
+├── tools.py                TOOLS ENGINE con implementaciones reales
+├── models.py               Registry/router multimodelo y proveedores
+├── storage.py              SQLite (conversaciones, memoria, ajustes, auditoría)
+├── diagnostics.py          Comprobaciones y agregación de estado
+└── voice.py                Configuración de voz, pausas y troceado
+
+backend/leyra-api/          FastAPI: API + interfaz web
+├── app/config.py           Entorno, límites, autenticación
+├── app/providers.py        Adaptadores OpenAI/Anthropic/Gemini/local
+├── app/state.py            Composición de motores y diagnóstico
+├── app/main.py             Rutas, SSE, archivos, seguridad
+├── tests/                  Pruebas de API con proveedor simulado local
+├── requirements.txt
+├── Dockerfile
+└── run.py
+
+web/                        Interfaz LEYRA IA (HTML/CSS/JS, sin dependencias)
+android/app-integration/    Puente Kotlin de referencia (no compilado aquí)
+
+docs/LEYRA_ESPECIFICACION_MAESTRA.md   Trazabilidad completa de la orden maestra
+docs/LEYRA_ANDROID_APP_INTEGRATION.md  Contrato de integración y límites de Android
+docs/LEYRA_API.md                      Referencia del API y despliegue
+```
+
+## Pruebas
 
 ```bash
+python -m unittest discover -s tests -v                       # 134 pruebas de motores
+PYTHONPATH=.:backend/leyra-api \
+  python -m unittest discover -s backend/leyra-api/tests -v   # 33 pruebas de API
 node --check web/app.js
-node --check backend/mily-openai/server.mjs
 ```
 
-GitHub Actions ejecuta automáticamente las comprobaciones de sintaxis y las pruebas en los cambios de `main` y en pull requests.
+GitHub Actions ejecuta las tres suites (`tests.yml` y `quality.yml`).
 
-## Ejemplo: administrar una tarea
+## Límites declarados
 
-```python
-from mily_core.task_manager import TaskManager
+Nada de esto se presenta como terminado porque no lo esté:
 
-tasks = TaskManager()
-tasks.create("demo-1", metadata={"source": "manual"})
-tasks.start("demo-1")
-tasks.succeed("demo-1", result={"ok": True})
-print(tasks.get("demo-1").status.value)  # succeeded
-```
+- **Android nativo**: el proyecto vive en `mily.zip`; este repositorio entrega el
+  motor, la API y el puente de referencia. Falta integrarlo y probarlo en dispositivo.
+- **Chat**: requiere una clave de proveedor en el servidor. Sin ella el API responde
+  503 con la explicación exacta.
+- **Búsqueda web y monedas**: necesitan proveedor configurado; no hay resultados
+  simulados.
+- **PostgreSQL/pgvector**: no implementado; se usa SQLite con búsqueda textual.
+- **Cifrado de memoria en reposo y sincronización**: pendientes; el diagnóstico
+  degrada el módulo de memoria por ello.
+- **Agentes**: son perfiles de razonamiento transparentes, no procesos autónomos
+  colaborando entre sí.
+- **Accesibilidad (nivel 5)**: desactivada por defecto, exige opt-in explícito; su
+  implementación nativa y su cumplimiento de Play quedan pendientes.
 
-El coordinador solo gestiona estados y eventos: no ejecuta herramientas, no concede permisos ni sustituye la autorización de operaciones externas.
+## Seguridad
 
-## Nota de seguridad
+- Ninguna clave de proveedor en el cliente, en el repositorio ni en logs.
+- Token Bearer opcional, CORS con allowlist y mismo origen, límite por IP y de
+  tamaño, validación estricta y errores sanitizados.
+- Herramientas y acciones externas sujetas a permisos y confirmación por llamada.
+- La integración con apps usa exclusivamente interfaces públicas de Android; no lee
+  datos privados, no instala APK en silencio y no elude permisos.
 
-La memoria actual es volátil y no debe usarse para secretos ni datos personales sensibles. Las comprobaciones de rutas deben aplicarse en las herramientas que leen o escriben archivos. Los logs intentan redactar credenciales comunes, pero eso no convierte en seguro registrar contenido privado: evita pasar secretos o datos personales a los logs. No guardes claves API ni contraseñas en el repositorio.
+Detalle de riesgos y estado verificado en `docs/STATUS.md`.

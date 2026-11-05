@@ -1,0 +1,23 @@
+# Secretos y entorno
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.pyc
+node_modules/
+
+# Datos locales de LEYRA
+data/
+backend/leyra-api/data/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+leyra.db
+
+# Artefactos de build
+build/
+dist/
+.gradle/
+*.apk

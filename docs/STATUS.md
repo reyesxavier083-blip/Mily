@@ -1,6 +1,52 @@
-# Estado de MILY
+# Estado de LEYRA IA
 
-Última revisión: 2026-10-15 (UTC).
+Última revisión: 2026-11-05 (UTC).
+
+## LEYRA IA — estado verificado en esta revisión
+
+**Probado automáticamente**
+
+- 134 pruebas de motores (`tests/`): integración de apps, herramientas, router
+  multimodelo, memoria SQLite, voz y diagnóstico. Todas en verde.
+- 33 pruebas de API (`backend/leyra-api/tests/`): salud, autenticación, CORS implícito,
+  chat con proveedor falso, bucle real de herramientas, herramientas, integraciones
+  Android, memoria, conversaciones, voz y archivos. Todas en verde.
+- `node --check web/app.js` correcto.
+- Arranque real del servidor (`run.py`) y verificación manual de `/health`,
+  `/v1/diagnostics`, `/v1/tools`, `/v1/apps/*`, `/v1/memory`, `/v1/conversations`,
+  `/v1/voice` y `/v1/files` con `curl`.
+- Interfaz verificada con un arnés DOM (jsdom) contra el servidor real: arranque sin
+  errores de JavaScript, navegación por las diez vistas, envío de mensaje con aviso
+  honesto por falta de proveedor, ejecución de herramienta desde la UI, diagnóstico,
+  resolución de instrucción de integración y cambio de preferencias.
+
+**No verificado / pendiente**
+
+- Conversación real contra un proveedor de IA: no hay credenciales en este entorno.
+  El camino está probado con un proveedor simulado, no con tráfico real.
+- App Android: el puente Kotlin de `android/app-integration/` no se ha compilado ni
+  ejecutado en dispositivo. No se declara operativo.
+- Reconocimiento y síntesis de voz reales: dependen del navegador del usuario; no se
+  probaron con micrófono ni altavoces en este entorno.
+- Lectura de PDF: `pypdf` figura en `requirements.txt` pero no se ejecutó una prueba
+  con un PDF real en esta sesión.
+- PostgreSQL/pgvector, cifrado en reposo, sincronización de memoria, firma de plugins
+  y servicio de accesibilidad: no implementados.
+- Despliegue público: no se ha publicado esta versión en ningún hosting.
+
+**Riesgos conocidos**
+
+- SQLite y el limitador de tasa son locales al proceso; no escalan horizontalmente.
+- La memoria y los archivos se almacenan sin cifrar.
+- Un token de API compartido no sustituye autenticación por usuario.
+- El reconocimiento de voz del navegador puede procesar audio en servidores del
+  proveedor del navegador; se advierte en la interfaz.
+- `confirmed: true` en `/v1/apps/resolve` confirma la llamada, no una sesión; la UI
+  pide confirmación explícita antes de enviarlo.
+
+---
+
+## Etapa anterior (MILY) — histórico
 
 ## Cambios verificados
 

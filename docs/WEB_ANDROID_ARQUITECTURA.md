@@ -1,3 +1,11 @@
+> **Actualizado con LEYRA IA (2026-11-05).** La interfaz `web/` ya no es una
+> página estática que llama a un backend Node: es el cliente de `backend/leyra-api/`,
+> servido por el mismo proceso, con chat SSE, herramientas, memoria, voz,
+> integraciones Android y diagnóstico. Consulta `docs/LEYRA_API.md`,
+> `docs/LEYRA_ANDROID_APP_INTEGRATION.md` y
+> `docs/LEYRA_ESPECIFICACION_MAESTRA.md`. El backend Node descrito abajo queda
+> como legado.
+
 # MILY Web + Android: arquitectura de integración
 
 ## Estado real
