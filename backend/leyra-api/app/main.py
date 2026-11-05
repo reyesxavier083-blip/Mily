@@ -32,6 +32,7 @@ from leyra_core.tools import ToolError, ToolStatus
 from leyra_core.voice import STYLES, LANGUAGES, VoiceError, VoiceSettings, chunk_text, expressive_text
 
 from .config import RateLimiter, Settings
+from .security import SecurityGuard
 from .providers import ProviderError, Turn, build_client, parse_data_url
 from .state import Services, build_services
 
@@ -179,42 +180,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             max_age=600,
         )
 
-    @app.middleware("http")
-    async def guard(request: Request, call_next):
-        path = request.url.path
-        origin = request.headers.get("origin", "").rstrip("/")
-        host = request.headers.get("host", "").rstrip("/")
-        forwarded = request.headers.get("x-forwarded-host", "").split(",")[0].strip().rstrip("/")
-        origin_host = origin.split("://")[-1] if origin else ""
-        # Same-origin (including reverse proxies that preserve the public host in
-        # X-Forwarded-Host) needs no CORS, so browser requests from the served app
-        # work while foreign origins are still rejected.
-        same_origin = bool(origin_host) and origin_host in {host, forwarded}
-
-        if origin and origin.rstrip("/") not in config.allowed_origins and not same_origin:
-            return JSONResponse({"detail": "Origen no permitido."}, status_code=403)
-        if request.method == "OPTIONS":
-            return JSONResponse({}, status_code=204)
-
-        if path.startswith("/v1/"):
-            if config.auth_required:
-                supplied = request.headers.get("authorization", "")
-                token = supplied[7:].strip() if supplied.lower().startswith("bearer ") else ""
-                if not hmac.compare_digest(token.encode("utf-8"), config.api_token.encode("utf-8")):
-                    return JSONResponse({"detail": "No autorizado."}, status_code=401)
-            client_ip = request.client.host if request.client else "unknown"
-            if not limiter.allow(client_ip, now=time.time()):
-                return JSONResponse({"detail": "Demasiadas solicitudes. Inténtalo en un minuto."}, status_code=429)
-            length = request.headers.get("content-length")
-            if length and length.isdigit() and int(length) > config.max_body_bytes:
-                return JSONResponse({"detail": "La solicitud es demasiado grande."}, status_code=413)
-
-        response = await call_next(request)
-        if path.startswith(("/styles.css", "/app.js", "/index.html")) or path == "/":
-            response.headers["Cache-Control"] = "no-store"
-        response.headers.setdefault("X-Content-Type-Options", "nosniff")
-        response.headers.setdefault("Referrer-Policy", "no-referrer")
-        return response
+    app.add_middleware(SecurityGuard, config=config, limiter=limiter)
 
     def svc(request: Request) -> Services:
         return request.app.state.services
